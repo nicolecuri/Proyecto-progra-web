@@ -1,30 +1,25 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom"
 
-import Navbar from "./components/Navbar"
-
-import CrearRutina from "./pages/CrearRutina"
-import Admin from "./pages/Admin"
+import Login from "./pages/Login/Login"
+import Register from "./pages/Register/Register"
+import Dashboard from "./pages/Dashboard/Dashboard"
 
 import "./App.css"
 
 function App() {
-
   return (
-
-    <BrowserRouter>
-
-      <Navbar />
-
-      <Routes>
-
-        <Route path="/" element={<CrearRutina />} />
-
-        <Route path="/admin" element={<Admin />} />
-
-      </Routes>
-
-    </BrowserRouter>
-
+    <div className="app-container">
+      <BrowserRouter>
+        <main className="main-content">
+          <Routes>
+            <Route path="/" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+      </BrowserRouter>
+    </div>
   )
 }
 

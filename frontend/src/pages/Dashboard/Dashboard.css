@@ -1,0 +1,214 @@
+.dashboard-wrapper {
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* Header */
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 32px;
+  margin: 20px 32px;
+  border-radius: 100px;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--accent-color);
+  border-radius: 50%;
+}
+
+.header-brand h2 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  background: rgba(20, 184, 166, 0.2);
+  color: var(--accent-color);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+}
+
+.btn-logout {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+
+.btn-logout:hover {
+  color: var(--error-color);
+}
+
+/* Main Content */
+.dashboard-content {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 32px;
+  animation: slideUpFade 0.6s ease-out forwards;
+}
+
+.welcome-section {
+  margin: 40px 0 32px 0;
+  text-align: left;
+}
+
+.welcome-section h1 {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.welcome-section p {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.stat-card {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: transform 0.3s;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(20, 184, 166, 0.15);
+}
+
+.stat-info h3 {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Recent Workouts */
+.recent-workouts {
+  padding: 32px;
+}
+
+.workouts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.workouts-header h2 {
+  font-size: 1.4rem;
+}
+
+.btn-sm {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 0.9rem;
+}
+
+.workouts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workout-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.4);
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.workout-item:hover {
+  background: rgba(30, 41, 59, 0.6);
+  border-color: var(--border-color);
+}
+
+.workout-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--surface-color-solid);
+}
+
+.workout-details h4 {
+  font-size: 1.05rem;
+  margin-bottom: 4px;
+}
+
+.workout-details span {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard-header {
+    margin: 16px;
+    padding: 16px 20px;
+  }
+  
+  .dashboard-content {
+    padding: 0 16px;
+  }
+  
+  .workouts-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+}
