@@ -17,24 +17,24 @@ const Dashboard = () => {
 
         <section className="stats-grid">
           <div className="stat-card glass-panel">
-            <div className="stat-icon timer-icon"></div>
+            <div className="stat-icon timer-icon" style={{ fontSize: '1.8rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>⏱️</div>
             <div className="stat-info">
               <h3>Tiempo Activo</h3>
               <p className="stat-value">125 min</p>
             </div>
           </div>
           <div className="stat-card glass-panel">
-            <div className="stat-icon calories-icon"></div>
+            <div className="stat-icon calories-icon" style={{ fontSize: '1.8rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>🔥</div>
             <div className="stat-info">
               <h3>Calorías</h3>
               <p className="stat-value">1,070 kcal</p>
             </div>
           </div>
           <div className="stat-card glass-panel">
-            <div className="stat-icon streak-icon"></div>
+            <div className="stat-icon" style={{ fontSize: '1.8rem', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>💪</div>
             <div className="stat-info">
-              <h3>Racha Actual</h3>
-              <p className="stat-value">3 días</p>
+              <h3>Ejercicio Actual</h3>
+              <p className="stat-value">Fuerza (Brazos)</p>
             </div>
           </div>
         </section>
