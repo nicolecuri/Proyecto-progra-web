@@ -1,0 +1,120 @@
+.calendar-container {
+  padding: 24px;
+  width: 100%;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.calendar-header h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--text-primary);
+}
+
+.intensity-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.legend-box {
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 10px;
+}
+
+.day-name {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(30, 41, 59, 0.4);
+  transition: transform 0.2s, box-shadow 0.2s;
+  cursor: default;
+  position: relative;
+}
+
+.calendar-day:not(.empty):hover {
+  transform: scale(1.1);
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+
+.day-number {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.calendar-day.empty {
+  background-color: transparent;
+  pointer-events: none;
+}
+
+.calendar-day.today::after {
+  content: '';
+  position: absolute;
+  bottom: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: var(--text-primary);
+}
+
+/* Escala de colores intensidades (Rojos - Rosados) */
+.intensity-0 {
+  background-color: rgba(30, 41, 59, 0.4); /* Sin entrenamiento */
+}
+.intensity-1 {
+  background-color: #fbcfe8; /* Rosa muy claro */
+  color: #1e293b;
+}
+.intensity-2 {
+  background-color: #f472b6; /* Rosa medio */
+}
+.intensity-3 {
+  background-color: #e11d48; /* Rojo cereza/rosa fuerte */
+}
+.intensity-4 {
+  background-color: #9f1239; /* Rojo oscuro intenso */
+}
+
+/* Ajuste de color del texto para contrastar */
+.intensity-1 .day-number { color: #831843; }
+.intensity-2 .day-number,
+.intensity-3 .day-number,
+.intensity-4 .day-number { color: #ffffff; }
+
+@media (max-width: 640px) {
+  .calendar-grid {
+    gap: 4px;
+  }
+  .day-number {
+    font-size: 0.8rem;
+  }
+  .calendar-day {
+    border-radius: 6px;
+  }
+}

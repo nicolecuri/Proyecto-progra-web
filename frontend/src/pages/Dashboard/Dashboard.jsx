@@ -1,13 +1,6 @@
-import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 const Dashboard = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate('/');
-  };
-
   const workouts = [
     { id: 1, type: 'Fuerza (Tren Superior)', date: 'Hoy', duration: '45 min', calories: 320 },
     { id: 2, type: 'Cardio (HIIT)', date: 'Ayer', duration: '30 min', calories: 400 },
@@ -16,20 +9,6 @@ const Dashboard = () => {
 
   return (
     <div className="dashboard-wrapper">
-      <header className="dashboard-header glass-panel">
-        <div className="header-brand">
-          <div className="brand-icon"></div>
-          <h2>FitTrack</h2>
-        </div>
-        <div className="header-actions">
-          <div className="user-profile">
-            <div className="avatar">U</div>
-            <span>Usuario</span>
-          </div>
-          <button className="btn-logout" onClick={handleLogout}>Salir</button>
-        </div>
-      </header>
-
       <main className="dashboard-content">
         <section className="welcome-section">
           <h1>Resumen de tu progreso</h1>
