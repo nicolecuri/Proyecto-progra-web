@@ -1,9 +1,28 @@
+import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import './Navbar.css';
 
 const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isDarkTheme, setIsDarkTheme] = useState(true);
+
+  useEffect(() => {
+    if (isDarkTheme) {
+      document.body.classList.remove('light-theme');
+    } else {
+      document.body.classList.add('light-theme');
+    }
+  }, [isDarkTheme]);
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
+  };
+
+  const toggleTheme = () => {
+    setIsDarkTheme(!isDarkTheme);
+  };
 
   const handleLogout = () => {
     navigate('/');
@@ -37,10 +56,47 @@ const Navbar = () => {
       </nav>
 
       <div className="navbar-actions">
-        <div className="user-profile">
-          <div className="avatar">U</div>
+        <div className="user-profile-container">
+          <div className="avatar" onClick={toggleDropdown}>
+            <img src="https://ui-avatars.com/api/?name=Usuario&background=14b8a6&color=fff" alt="User" />
+          </div>
+          
+          {isDropdownOpen && (
+            <div className="profile-dropdown glass-panel">
+              <div className="dropdown-header">
+                <img src="https://ui-avatars.com/api/?name=Usuario&background=14b8a6&color=fff" alt="User" className="dropdown-avatar" />
+                <div>
+                  <h4>Juan Pérez</h4>
+                  <span>juan@correo.com</span>
+                </div>
+              </div>
+              <div className="dropdown-divider"></div>
+              
+              <button className="dropdown-item">
+                <span className="dropdown-icon">⭐</span> Mi Plan: <strong>Pro</strong>
+              </button>
+              <button className="dropdown-item">
+                <span className="dropdown-icon">⚙️</span> Configuración
+              </button>
+              <button className="dropdown-item">
+                <span className="dropdown-icon">🔗</span> Enlaces Rápidos
+              </button>
+              
+              <div className="dropdown-divider"></div>
+              
+              <button className="dropdown-item" onClick={toggleTheme}>
+                <span className="dropdown-icon">{isDarkTheme ? '☀️' : '🌙'}</span> 
+                Modo {isDarkTheme ? 'Claro' : 'Oscuro'}
+              </button>
+              
+              <div className="dropdown-divider"></div>
+              
+              <button className="dropdown-item text-error" onClick={handleLogout}>
+                <span className="dropdown-icon">🚪</span> Cerrar Sesión
+              </button>
+            </div>
+          )}
         </div>
-        <button className="btn-logout" onClick={handleLogout}>Salir</button>
       </div>
     </header>
   );
