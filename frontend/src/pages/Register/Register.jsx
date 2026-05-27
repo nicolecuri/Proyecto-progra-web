@@ -33,7 +33,11 @@ const Register = () => {
       return;
     }
 
-    // Simulando registro exitoso
+    // Simulando registro exitoso y guardando datos
+    localStorage.setItem('user', JSON.stringify({ 
+      name: formData.name, 
+      email: formData.email 
+    }));
     navigate('/dashboard');
   };
 

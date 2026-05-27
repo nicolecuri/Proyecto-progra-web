@@ -9,8 +9,9 @@ const Login = () => {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Simulando inicio de sesión (mock authentication)
-    // En una aplicación real, aquí iría la validación contra un backend
+    // Simulando inicio de sesión y guardando datos
+    const userName = email.split('@')[0]; // Generar un nombre basado en el correo
+    localStorage.setItem('user', JSON.stringify({ name: userName, email: email }));
     navigate('/dashboard');
   };
 

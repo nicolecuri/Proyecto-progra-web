@@ -7,6 +7,12 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
+  
+  // Leer datos del usuario simulado
+  const userData = JSON.parse(localStorage.getItem('user')) || { 
+    name: 'Usuario', 
+    email: 'usuario@correo.com' 
+  };
 
   useEffect(() => {
     if (isDarkTheme) {
@@ -25,6 +31,7 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('user');
     navigate('/');
   };
 
@@ -58,16 +65,16 @@ const Navbar = () => {
       <div className="navbar-actions">
         <div className="user-profile-container">
           <div className="avatar" onClick={toggleDropdown}>
-            <img src="https://ui-avatars.com/api/?name=Usuario&background=14b8a6&color=fff" alt="User" />
+            <img src={`https://ui-avatars.com/api/?name=${userData.name}&background=14b8a6&color=fff`} alt="User" />
           </div>
           
           {isDropdownOpen && (
             <div className="profile-dropdown glass-panel">
               <div className="dropdown-header">
-                <img src="https://ui-avatars.com/api/?name=Usuario&background=14b8a6&color=fff" alt="User" className="dropdown-avatar" />
+                <img src={`https://ui-avatars.com/api/?name=${userData.name}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
                 <div>
-                  <h4>Juan Pérez</h4>
-                  <span>juan@correo.com</span>
+                  <h4>{userData.name}</h4>
+                  <span>{userData.email}</span>
                 </div>
               </div>
               <div className="dropdown-divider"></div>
