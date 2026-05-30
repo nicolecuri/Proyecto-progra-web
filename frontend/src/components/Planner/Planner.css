@@ -1,0 +1,70 @@
+.planner-root{display:flex;gap:20px;padding:20px;font-family:Inter,system-ui,Segoe UI,Roboto}
+.planner-left{flex:1;max-width:420px}
+.planner-right{flex:2;min-width:420px}
+.card{background:rgba(37,150,190,0.15);border-radius:12px;padding:16px;box-shadow:0 6px 18px rgba(15,23,42,0.1);margin-bottom:16px;border:1px solid rgba(37,150,190,0.35)}
+.stat-row{display:flex;gap:12px;align-items:center}
+.stat{flex:1;padding:12px;border-radius:10px;background:linear-gradient(180deg,#eef2ff,#f8fafc)}
+.muscle-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.muscle-item{display:flex;justify-content:space-between;padding:8px;border-radius:8px;background:#f7f9fb}
+.routine-list{display:flex;flex-direction:column;gap:10px}
+.routine-item{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:12px;border-radius:12px;background:#f8fafc}
+.routine-item-name{flex:1;text-align:left;border:none;background:transparent;padding:0;color:inherit;cursor:pointer}
+.routine-item-name div:first-child{font-weight:700}
+.routine-actions-row{display:flex;gap:8px;flex-wrap:wrap}
+.preview-card{position:relative}
+.preview-summary-card{background:rgba(37,150,190,0.18);margin:10px 0;padding:14px;border-radius:12px}
+.preview-table{width:100%;border-collapse:collapse;margin-top:12px}
+.preview-table th,.preview-table td{border:1px solid rgba(37,150,190,0.25);padding:10px;text-align:left;vertical-align:top}
+.preview-table th{background:rgba(37,150,190,0.12)}
+.preview-exercise-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:6px}
+.rest-badge{display:inline-flex;padding:4px 10px;border-radius:999px;background:#fee2e2;color:#b91c1c;font-size:0.85rem}
+.days-list{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+.day-pill{padding:8px 10px;border-radius:999px;background:#f3f4f6;cursor:pointer}
+.exercise-card{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;background:#eef4ff;padding:18px;border-radius:18px}
+.exercise-info{flex:1}
+.exercise-title{font-weight:700;font-size:1rem;margin-bottom:6px}
+.exercise-subtitle{color:#475569;font-size:0.95rem;margin-bottom:16px}
+.exercise-meta{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px}
+.field-control{display:flex;justify-content:space-between;align-items:center;gap:12px;background:#f0f9ff;border:1px solid rgba(37,150,190,0.4);border-radius:14px;padding:10px 14px;min-width:180px;flex:1}
+.field-control span{font-size:0.9rem;color:#0f172a;min-width:60px}
+.value-control{display:flex;align-items:center;gap:8px}
+.step-btn{width:30px;height:30px;border:none;border-radius:10px;background:rgba(37,150,190,0.2);color:#0f172a;cursor:pointer;transition:background 0.2s}
+.step-btn:hover{background:rgba(37,150,190,0.3)}
+.btn{padding:6px 12px;border-radius:10px;background:#c7d2fe;border:none;cursor:pointer;transition:background 0.2s}
+.btn:hover{background:#a5b4fc}
+.btn.secondary{background:#e2e8f0}
+.small-input{width:45px;padding:8px;border-radius:10px;border:1px solid #cbd5e1;background:#f8fafc;text-align:center}
+.exercise-volume{margin-top:12px;color:#1e293b}
+.notes-block textarea{width:100%;border-radius:14px;border:1px solid #cbd5e1;background:#fff;padding:12px;resize:vertical;min-height:72px}
+.controls{display:flex;gap:10px;margin-top:16px}
+.search-suggestions{position:relative;transition:all 0.2s ease;box-shadow:0 4px 18px rgba(15,23,42,0.05);border-radius:16px}
+.search-suggestions.search-active{transform:scale(1.01);box-shadow:0 10px 35px rgba(15,23,42,0.12)}
+.search-controls{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap;align-items:center}
+.search-input{flex:1;padding:12px 16px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;color:#0f172a;transition:all 0.2s ease;outline:none}
+.search-suggestions.search-active .search-input{border-color:#6366f1;box-shadow:0 0 0 4px rgba(99,102,241,0.08)}
+.filter-select{width:180px;padding:12px 16px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;color:#0f172a}
+.suggestions-list{position:absolute;z-index:40;left:0;right:0;background:#fff;border-radius:16px;box-shadow:0 8px 20px rgba(2,6,23,.08);max-height:260px;overflow:auto}
+.suggestion{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;border-bottom:1px solid #f1f5f9;cursor:pointer;transition:background 0.2s}
+.suggestion:hover{background:#eef2ff}
+.suggestion-meta{font-size:0.85rem;color:#64748b}
+
+.routine-actions-card{display:flex;flex-direction:column;padding:18px;margin-bottom:16px;gap:16px}
+.routine-actions-row{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap}
+.routine-label{display:block;color:#334155;font-size:0.9rem;margin-bottom:6px}
+.routine-input{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #cbd5e1;background:#f8fafc;color:#0f172a}
+.routine-buttons{display:flex;gap:10px;flex-wrap:wrap}
+.btn.primary{background:linear-gradient(90deg,#6366f1,#8b5cf6);color:#fff}
+.rest-day-banner{padding:16px;border-radius:14px;background:#eef2ff;color:#1e3a8a;margin-top:12px}
+.empty-state{padding:12px;color:#475569;background:#f8fafc;border-radius:12px}
+.day-pill.rest-day{background:#fee2e2;color:#b91c1c}
+.muscle-item.active-preview{background:#eef2ff}
+
+@media print {
+  body * { visibility: hidden }
+  .planner-root, .planner-root * { visibility: visible }
+  .planner-root { position: absolute; top: 0; left: 0; width: 100% }
+  .navbar-container, .navbar-actions, .navbar-links, .glass-panel, .btn, .suggestions-list, input, textarea { display: none !important }
+  .card { box-shadow: none !important; border: none !important; }
+}
+
+@media (max-width:900px){.planner-root{flex-direction:column}.planner-left{max-width:none}}

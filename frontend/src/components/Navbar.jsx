@@ -60,6 +60,12 @@ const Navbar = () => {
         >
           Progreso
         </Link>
+        <Link
+          to="/planner"
+          className={location.pathname === '/planner' ? 'active' : ''}
+        >
+          Planificar de rutina
+        </Link>
       </nav>
 
       <div className="navbar-actions">
