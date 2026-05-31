@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { registrarUsuario, ensureAdminUser } from '../../services/userStorage';
 import './Register.css';
 
 const Register = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
+    nombre: '',
+    correo: '',
     password: '',
     confirmPassword: ''
   });
@@ -33,11 +34,18 @@ const Register = () => {
       return;
     }
 
-    // Simulando registro exitoso y guardando datos
-    localStorage.setItem('user', JSON.stringify({ 
-      name: formData.name, 
-      email: formData.email 
-    }));
+    ensureAdminUser()
+    const nuevoUsuario = registrarUsuario({
+      nombre: formData.nombre,
+      correo: formData.correo,
+      password: formData.password,
+    })
+
+    if (!nuevoUsuario) {
+      setError('Ya existe una cuenta con este correo.')
+      return;
+    }
+
     navigate('/dashboard');
   };
 
@@ -53,24 +61,24 @@ const Register = () => {
 
         <form className="register-form" onSubmit={handleRegister}>
           <div className="input-group">
-            <label htmlFor="name">Nombre Completo</label>
+            <label htmlFor="nombre">Nombre Completo</label>
             <input 
               type="text" 
-              id="name" 
+              id="nombre" 
               placeholder="Juan Pérez" 
-              value={formData.name}
+              value={formData.nombre}
               onChange={handleChange}
               required 
             />
           </div>
 
           <div className="input-group">
-            <label htmlFor="email">Correo Electrónico</label>
+            <label htmlFor="correo">Correo Electrónico</label>
             <input 
               type="email" 
-              id="email" 
+              id="correo" 
               placeholder="tu@correo.com" 
-              value={formData.email}
+              value={formData.correo}
               onChange={handleChange}
               required 
             />

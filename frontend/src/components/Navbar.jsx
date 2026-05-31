@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { getCurrentUser } from '../services/userStorage';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -8,11 +9,14 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   
-  // Leer datos del usuario simulado
-  const userData = JSON.parse(localStorage.getItem('user')) || { 
-    name: 'Usuario', 
-    email: 'usuario@correo.com' 
+  const userData = getCurrentUser() || {
+    nombre: 'Usuario',
+    correo: 'usuario@correo.com',
+    rol: 'usuario',
   };
+  const isAdmin = userData.rol === 'admin';
+  const displayName = userData.nombre || userData.name || 'Usuario'
+  const displayEmail = userData.correo || userData.email || 'usuario@correo.com'
 
   useEffect(() => {
     if (isDarkTheme) {
@@ -60,27 +64,35 @@ const Navbar = () => {
         >
           Progreso
         </Link>
-        <Link
+         <Link
           to="/planner"
           className={location.pathname === '/planner' ? 'active' : ''}
         >
           Planificar de rutina
         </Link>
+        {isAdmin && (
+          <Link
+            to="/admin"
+            className={location.pathname === '/admin' ? 'active' : ''}
+          >
+            Admin
+          </Link>
+        )}
       </nav>
 
       <div className="navbar-actions">
         <div className="user-profile-container">
           <div className="avatar" onClick={toggleDropdown}>
-            <img src={`https://ui-avatars.com/api/?name=${userData.name}&background=14b8a6&color=fff`} alt="User" />
+            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" />
           </div>
           
           {isDropdownOpen && (
             <div className="profile-dropdown glass-panel">
               <div className="dropdown-header">
-                <img src={`https://ui-avatars.com/api/?name=${userData.name}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
+                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
                 <div>
-                  <h4>{userData.name}</h4>
-                  <span>{userData.email}</span>
+                  <h4>{displayName}</h4>
+                  <span>{displayEmail}</span>
                 </div>
               </div>
               <div className="dropdown-divider"></div>

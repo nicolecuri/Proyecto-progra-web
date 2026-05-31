@@ -5,7 +5,12 @@ import Register from "./pages/Register/Register"
 import Dashboard from "./pages/Dashboard/Dashboard"
 import Progress from "./pages/Progress/Progress"
 import Planner from "./pages/Planner/Planner"
+import AdminUsuarios from "./pages/AdminUsuarios/AdminUsuarios"
+import ProtectedRoute from "./components/ProtectedRoute"
 import Navbar from "./components/Navbar"
+import { ensureAdminUser } from "./services/userStorage"
+
+ensureAdminUser()
 
 import "./App.css"
 
@@ -18,9 +23,38 @@ function App() {
           <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/register" element={<Register />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/planner" element={<Planner />} />
-            <Route path="/progress" element={<Progress />} />
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/planner"
+              element={
+                <ProtectedRoute>
+                  <Planner />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/progress"
+              element={
+                <ProtectedRoute>
+                  <Progress />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/admin"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AdminUsuarios />
+                </ProtectedRoute>
+              }
+            />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

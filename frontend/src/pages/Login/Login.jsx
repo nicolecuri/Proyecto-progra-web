@@ -1,18 +1,30 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { loginUsuario, ensureAdminUser } from '../../services/userStorage';
 import './Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Simulando inicio de sesión y guardando datos
-    const userName = email.split('@')[0]; // Generar un nombre basado en el correo
-    localStorage.setItem('user', JSON.stringify({ name: userName, email: email }));
-    navigate('/dashboard');
+    ensureAdminUser()
+    const usuario = loginUsuario(email, password)
+
+    if (!usuario) {
+      setError('Correo o contraseña incorrectos.')
+      return
+    }
+
+    if (usuario.rol === 'admin') {
+      navigate('/admin')
+      return
+    }
+
+    navigate('/dashboard')
   };
 
   return (
@@ -22,6 +34,8 @@ const Login = () => {
           <h1>Bienvenido de vuelta</h1>
           <p>Ingresa a tu cuenta para continuar tu entrenamiento</p>
         </div>
+
+        {error && <div className="error-message">{error}</div>}
 
         <form className="login-form" onSubmit={handleLogin}>
           <div className="input-group">
