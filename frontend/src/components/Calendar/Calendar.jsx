@@ -57,13 +57,21 @@ const Calendar = ({ workoutData }) => {
         ))}
 
         {days.map(day => {
-          const intensity = getIntensity(day);
+          const dateStr = formatDate(day);
+          const workout = workoutData.find(w => w.date === dateStr);
+          const intensity = workout ? workout.intensity : 0;
           return (
             <div 
               key={day} 
               className={`calendar-day intensity-${intensity} ${day === today.getDate() ? 'today' : ''}`}
             >
               <span className="day-number">{day}</span>
+              {workout && workout.muscles && (
+                <div className="calendar-tooltip">
+                  <strong>{workout.muscles}</strong>
+                  <span>{workout.time}</span>
+                </div>
+              )}
             </div>
           );
         })}

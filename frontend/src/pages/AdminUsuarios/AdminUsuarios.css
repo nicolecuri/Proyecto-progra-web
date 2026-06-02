@@ -17,7 +17,7 @@
 
 .admin-header .subtitle {
   margin: 0 0 0.5rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.14em;
   font-size: 0.78rem;
@@ -40,9 +40,9 @@
   min-width: 220px;
   padding: 0.9rem 1rem;
   border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.32);
-  background: rgba(255, 255, 255, 0.12);
-  color: #f8fafc;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .admin-summary-section {
@@ -68,7 +68,7 @@
 .admin-stat-card h3 {
   margin: 0;
   font-size: 1rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .admin-stat-card p {
@@ -79,8 +79,9 @@
 
 .admin-notice {
   padding: 1rem 1.25rem;
-  border-left: 4px solid #22c55e;
-  color: #ecfdf5;
+  border-left: 4px solid var(--success-color);
+  color: var(--text-primary);
+  background: var(--success-bg);
 }
 
 .admin-table-section {
@@ -107,11 +108,11 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   font-size: 0.85rem;
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .admin-user-table tbody tr {
-  border-top: 1px solid rgba(148, 163, 184, 0.18);
+  border-top: 1px solid var(--border-color);
 }
 
 .admin-user-table tbody tr:hover {
@@ -119,13 +120,13 @@
 }
 
 .admin-user-table td {
-  color: #e2e8f0;
+  color: var(--text-primary);
 }
 
 .admin-user-table .empty-row {
   text-align: center;
   padding: 2rem 0;
-  color: #cbd5e1;
+  color: var(--text-secondary);
 }
 
 .admin-user-table button {
@@ -136,7 +137,7 @@
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.75);
+  background: var(--panel-bg);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -164,7 +165,7 @@
 .close-button {
   border: none;
   background: transparent;
-  color: #f8fafc;
+  color: var(--text-primary);
   font-size: 1.6rem;
   cursor: pointer;
 }
@@ -183,7 +184,7 @@
 }
 
 .modal-row span {
-  color: #94a3b8;
+  color: var(--text-secondary);
 }
 
 .btn-secondary,
@@ -195,14 +196,14 @@
 
 .btn-secondary {
   padding: 0.65rem 0.95rem;
-  background: rgba(148, 163, 184, 0.16);
-  color: #f8fafc;
+  background: var(--panel-soft);
+  color: var(--text-primary);
 }
 
 .btn-danger {
   padding: 0.65rem 0.95rem;
-  background: #dc2626;
-  color: #f8fafc;
+  background: var(--error-color);
+  color: #ffffff;
 }
 
 @media (max-width: 870px) {
