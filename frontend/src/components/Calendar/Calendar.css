@@ -83,26 +83,26 @@
   background-color: var(--text-primary);
 }
 
-/* Escala de colores intensidades (Rojos - Rosados) */
+/* Escala de colores intensidades dinámicas */
 .intensity-0 {
-  background-color: rgba(30, 41, 59, 0.4); /* Sin entrenamiento */
+  background-color: var(--panel-soft); /* Sin entrenamiento */
 }
 .intensity-1 {
-  background-color: #fbcfe8; /* Rosa muy claro */
-  color: #1e293b;
+  background-color: color-mix(in srgb, var(--accent-color) 25%, var(--bg-color));
+  color: var(--text-primary);
 }
 .intensity-2 {
-  background-color: #f472b6; /* Rosa medio */
+  background-color: color-mix(in srgb, var(--accent-color) 50%, var(--bg-color));
 }
 .intensity-3 {
-  background-color: #e11d48; /* Rojo cereza/rosa fuerte */
+  background-color: color-mix(in srgb, var(--accent-color) 75%, var(--bg-color));
 }
 .intensity-4 {
-  background-color: #9f1239; /* Rojo oscuro intenso */
+  background-color: var(--accent-color);
 }
 
 /* Ajuste de color del texto para contrastar */
-.intensity-1 .day-number { color: #831843; }
+.intensity-1 .day-number,
 .intensity-2 .day-number,
 .intensity-3 .day-number,
 .intensity-4 .day-number { color: #ffffff; }
@@ -117,4 +117,55 @@
   .calendar-day {
     border-radius: 6px;
   }
+}
+
+/* Custom Tooltip para el Calendario */
+.calendar-tooltip {
+  position: absolute;
+  bottom: 115%;
+  left: 50%;
+  transform: translateX(-50%) translateY(10px);
+  background-color: var(--panel-bg);
+  color: var(--text-primary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  box-shadow: 0 10px 15px -3px rgba(0,0,0,0.5);
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  pointer-events: none;
+  border: 1px solid var(--border-color);
+}
+
+.calendar-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border-width: 6px;
+  border-style: solid;
+  border-color: var(--panel-bg) transparent transparent transparent;
+}
+
+.calendar-day:hover .calendar-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.calendar-tooltip strong {
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.calendar-tooltip span {
+  color: var(--text-secondary);
 }
