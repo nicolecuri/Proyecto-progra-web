@@ -141,7 +141,7 @@ export function plannerReducer(state, action) {
           savedRoutines: updatedRoutines,
           previewRoutineId: state.editingRoutineId,
           editingRoutineId: null,
-          plan: normalizedPlan,
+          plan: initialPlan(),
         }
       }
 
