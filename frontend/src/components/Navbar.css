@@ -94,9 +94,27 @@
   display: flex;
   flex-direction: column;
   z-index: 100;
-  animation: slideUpFade 0.2s ease-out;
-  background-color: var(--surface-color-solid); /* Made less transparent */
+  background-color: var(--surface-color-solid);
   box-shadow: var(--shadow, 0 10px 25px rgba(0, 0, 0, 0.5));
+  
+  /* CSS Transition logic */
+  transform: translate(0, 10px) scale(0.98);
+  transform-origin: 100% 0%;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 50ms ease-out,
+    transform 50ms ease-out;
+}
+
+.user-profile-container:hover .profile-dropdown,
+.avatar:focus-visible + .profile-dropdown {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  pointer-events: auto;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+  transition-delay: 80ms;
 }
 
 .dropdown-header {

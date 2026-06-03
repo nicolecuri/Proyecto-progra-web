@@ -82,45 +82,43 @@ const Navbar = () => {
 
       <div className="navbar-actions">
         <div className="user-profile-container">
-          <div className="avatar" onClick={toggleDropdown}>
+          <button className="avatar" aria-describedby="profile-menu">
             <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" />
-          </div>
+          </button>
           
-          {isDropdownOpen && (
-            <div className="profile-dropdown glass-panel">
-              <div className="dropdown-header">
-                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
-                <div>
-                  <h4>{displayName}</h4>
-                  <span>{displayEmail}</span>
-                </div>
+          <div id="profile-menu" className="profile-dropdown glass-panel" role="tooltip">
+            <div className="dropdown-header">
+              <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
+              <div>
+                <h4>{displayName}</h4>
+                <span>{displayEmail}</span>
               </div>
-              <div className="dropdown-divider"></div>
-              
-              <button className="dropdown-item">
-                <span className="dropdown-icon">⭐</span> Mi Plan: <strong>Pro</strong>
-              </button>
-              <button className="dropdown-item">
-                <span className="dropdown-icon">⚙️</span> Configuración
-              </button>
-              <button className="dropdown-item">
-                <span className="dropdown-icon">🔗</span> Enlaces Rápidos
-              </button>
-              
-              <div className="dropdown-divider"></div>
-              
-              <button className="dropdown-item" onClick={toggleTheme}>
-                <span className="dropdown-icon">{isDarkTheme ? '☀️' : '🌙'}</span> 
-                Modo {isDarkTheme ? 'Claro' : 'Oscuro'}
-              </button>
-              
-              <div className="dropdown-divider"></div>
-              
-              <button className="dropdown-item text-error" onClick={handleLogout}>
-                <span className="dropdown-icon">🚪</span> Cerrar Sesión
-              </button>
             </div>
-          )}
+            <div className="dropdown-divider"></div>
+            
+            <button className="dropdown-item">
+              <span className="dropdown-icon">⭐</span> Mi Plan: <strong>Pro</strong>
+            </button>
+            <button className="dropdown-item">
+              <span className="dropdown-icon">⚙️</span> Configuración
+            </button>
+            <button className="dropdown-item">
+              <span className="dropdown-icon">🔗</span> Enlaces Rápidos
+            </button>
+            
+            <div className="dropdown-divider"></div>
+            
+            <button className="dropdown-item" onClick={toggleTheme}>
+              <span className="dropdown-icon">{isDarkTheme ? '☀️' : '🌙'}</span> 
+              Modo {isDarkTheme ? 'Claro' : 'Oscuro'}
+            </button>
+            
+            <div className="dropdown-divider"></div>
+            
+            <button className="dropdown-item text-error" onClick={handleLogout}>
+              <span className="dropdown-icon">🚪</span> Cerrar Sesión
+            </button>
+          </div>
         </div>
       </div>
     </header>
