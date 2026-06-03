@@ -2,6 +2,15 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
 
+const getMuscleEmoji = (muscleGroup) => {
+  const group = muscleGroup?.toLowerCase() || '';
+  if (group.includes('piernas') || group.includes('gemelos') || group.includes('glúteos')) return '🦵';
+  if (group.includes('bíceps') || group.includes('tríceps') || group.includes('brazos') || group.includes('hombros')) return '💪';
+  if (group.includes('abdominales') || group.includes('core')) return '🍫'; // Representa el six-pack
+  if (group.includes('espalda') || group.includes('pectoral') || group.includes('pecho')) return '🏋️‍♂️';
+  return '🏋️';
+};
+
 const Dashboard = () => {
   const [routines, setRoutines] = useState([]);
   const [activeRoutineId, setActiveRoutineId] = useState('draft');
@@ -124,7 +133,9 @@ const Dashboard = () => {
     return (
       <div key={workout.id} className="workout-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
-          <div className="workout-icon"></div>
+          <div className="workout-icon" style={{display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', fontSize: '1.8rem'}}>
+            {getMuscleEmoji(workout.grupoMuscularPrincipal)}
+          </div>
           <div className="workout-details">
             <h4>{workout.nombre}</h4>
             <span>{workout.series} series • {workout.repeticiones} reps • {workout.grupoMuscularPrincipal}</span>
