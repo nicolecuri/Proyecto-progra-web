@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
+import { getCurrentUser } from '../../services/userStorage';
 
 const getMuscleEmoji = (muscleGroup) => {
   const group = muscleGroup?.toLowerCase() || '';
@@ -36,17 +37,20 @@ const Dashboard = () => {
     setActiveRoutineId(savedActiveId);
 
     try {
-      const persisted = localStorage.getItem('fitplanner-v1');
+      const user = getCurrentUser()
+      const ident = user ? (user.correo || user.id || user.nombre) : 'guest'
+      const key = `fitplanner-v1:${ident}`
+      const persisted = localStorage.getItem(key)
       if (persisted) {
-        const parsed = JSON.parse(persisted);
-        const allRoutines = [{ id: 'draft', nombre: parsed.plan?.nombre || 'Borrador Actual', plan: parsed.plan }];
+        const parsed = JSON.parse(persisted)
+        const allRoutines = [{ id: 'draft', nombre: parsed.plan?.nombre || 'Borrador Actual', plan: parsed.plan }]
         if (parsed.savedRoutines && parsed.savedRoutines.length > 0) {
-          allRoutines.push(...parsed.savedRoutines);
+          allRoutines.push(...parsed.savedRoutines)
         }
-        setRoutines(allRoutines);
+        setRoutines(allRoutines)
       }
     } catch (e) {
-      console.error('Error cargando rutinas desde caché:', e);
+      console.error('Error cargando rutinas desde caché:', e)
     }
   }, []);
 

@@ -1,13 +1,23 @@
 import React, { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
 import { plannerReducer, initialPlan } from './plannerReducer'
+import { getCurrentUser } from '../services/userStorage'
 import { summarizeWeek } from '../utils/calculations'
 
 const PlannerContext = createContext(null)
-const STORAGE_KEY = 'fitplanner-v1'
+const BASE_KEY = 'fitplanner-v1'
+
+const getStorageKey = () => {
+  const user = getCurrentUser()
+  if (!user) return `${BASE_KEY}:guest`
+  // use correo if available, fall back to id or name
+  const ident = user.correo || user.id || user.nombre || 'guest'
+  return `${BASE_KEY}:${ident}`
+}
 
 const loadInitialState = () => {
   try {
-    const persisted = localStorage.getItem(STORAGE_KEY)
+    const key = getStorageKey()
+    const persisted = localStorage.getItem(key)
     if (persisted) {
       const parsed = JSON.parse(persisted)
       if (parsed && parsed.plan) return parsed
@@ -27,7 +37,12 @@ export function PlannerProvider({ children }) {
   const [state, dispatch] = useReducer(plannerReducer, null, loadInitialState)
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    try {
+      const key = getStorageKey()
+      localStorage.setItem(key, JSON.stringify(state))
+    } catch (error) {
+      console.warn('No se pudo guardar el estado del planificador:', error)
+    }
   }, [state])
 
   const resumen = useMemo(() => summarizeWeek(state.plan), [state.plan])
