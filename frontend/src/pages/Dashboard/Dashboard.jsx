@@ -15,8 +15,12 @@ const Dashboard = () => {
   const [routines, setRoutines] = useState([]);
   const [activeRoutineId, setActiveRoutineId] = useState('draft');
   const [todayPlan, setTodayPlan] = useState(null);
-  const [stats, setStats] = useState({ time: 0, calories: 0, muscles: 'Ninguno' });
   const [tracking, setTracking] = useState({});
+
+  // Timer states
+  const [suggestTimerFor, setSuggestTimerFor] = useState(null);
+  const [timerMinutesInput, setTimerMinutesInput] = useState(3);
+  const [activeTimer, setActiveTimer] = useState(null);
 
   useEffect(() => {
     // Cargar historial de tracking de hoy
@@ -65,43 +69,87 @@ const Dashboard = () => {
       const currentDay = plan.dias.find(d => d.diaNombre === todayName);
       if (currentDay && !currentDay.isDescanso && currentDay.ejercicios && currentDay.ejercicios.length > 0) {
         setTodayPlan(currentDay);
-        
-        const totalSeries = currentDay.ejercicios.reduce((acc, ex) => acc + (Number(ex.series) || 0), 0);
-        
-        const musclesSet = new Set();
-        currentDay.ejercicios.forEach(ex => {
-          if (ex.grupoMuscularPrincipal) musclesSet.add(ex.grupoMuscularPrincipal);
-        });
-        
-        setStats({
-          time: totalSeries * 3, // estimado: 3 min por serie
-          calories: totalSeries * 15, // estimado: 15 kcal por serie
-          muscles: Array.from(musclesSet).join(', ') || 'Varios'
-        });
       } else {
         setTodayPlan(null);
-        setStats({ time: 0, calories: 0, muscles: 'Ninguno' });
       }
     } else {
       setTodayPlan(null);
-      setStats({ time: 0, calories: 0, muscles: 'Ninguno' });
     }
   }, [activeRoutineId, routines]);
+
+  // Cálculo de estadísticas dinámicas basadas en ejercicios completados
+  const stats = useMemo(() => {
+    if (!todayPlan) return { time: 0, calories: 0, muscles: 'Ninguno' };
+    
+    let totalSeriesDone = 0;
+    const musclesSet = new Set();
+    
+    todayPlan.ejercicios.forEach(ex => {
+      if (tracking[ex.id] === 'done') {
+        totalSeriesDone += (Number(ex.series) || 0);
+        if (ex.grupoMuscularPrincipal) musclesSet.add(ex.grupoMuscularPrincipal);
+      }
+    });
+
+    return {
+      time: totalSeriesDone * 3, // 3 min por serie
+      calories: totalSeriesDone * 15, // 15 kcal por serie
+      muscles: Array.from(musclesSet).join(', ') || 'Ninguno'
+    };
+  }, [todayPlan, tracking]);
+
+  const handleStatusChange = (id, newStatus) => {
+    setTracking(prev => {
+      const updated = { ...prev, [id]: newStatus };
+      const todayStr = new Date().toISOString().split('T')[0];
+      const cacheKey = `fitplanner-tracking-${todayStr}`;
+      localStorage.setItem(cacheKey, JSON.stringify(updated));
+      return updated;
+    });
+
+    if (newStatus === 'in-progress' && todayPlan) {
+       const workout = todayPlan.ejercicios.find(ex => ex.id === id);
+       if (workout) {
+         setSuggestTimerFor(workout);
+         setTimerMinutesInput(workout.series * 3 || 3);
+       }
+    }
+  };
+
+  const startTimer = () => {
+    setActiveTimer({
+      workoutId: suggestTimerFor.id,
+      remainingSeconds: Math.max(1, timerMinutesInput * 60),
+      isMinimized: false
+    });
+    setSuggestTimerFor(null);
+  };
+
+  useEffect(() => {
+    let interval = null;
+    if (activeTimer && activeTimer.remainingSeconds > 0) {
+      interval = setInterval(() => {
+        setActiveTimer(prev => {
+          if (!prev) return null;
+          if (prev.remainingSeconds <= 1) {
+            clearInterval(interval);
+            // Marcar como realizado automáticamente
+            handleStatusChange(prev.workoutId, 'done');
+            return null; // El timer termina
+          }
+          return { ...prev, remainingSeconds: prev.remainingSeconds - 1 };
+        });
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [activeTimer]);
 
   const handleRoutineChange = (e) => {
     const newId = e.target.value;
     setActiveRoutineId(newId);
     localStorage.setItem('fitplanner-active-routine', newId);
-  };
-
-  const handleStatusChange = (id, newStatus) => {
-    const updated = { ...tracking, [id]: newStatus };
-    setTracking(updated);
-    
-    // Guardar en cache por fecha
-    const todayStr = new Date().toISOString().split('T')[0];
-    const cacheKey = `fitplanner-tracking-${todayStr}`;
-    localStorage.setItem(cacheKey, JSON.stringify(updated));
   };
 
   const getStatusColor = (status) => {
@@ -257,6 +305,61 @@ const Dashboard = () => {
           </div>
         </section>
       </main>
+
+      {/* Modal de Sugerencia de Timer */}
+      {suggestTimerFor && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 2000 }}>
+          <div className="glass-panel" style={{ padding: '25px', borderRadius: '16px', width: '320px', textAlign: 'center', background: 'var(--panel-bg)' }}>
+            <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Iniciar Temporizador</h3>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>¿Deseas iniciar un contador para <strong>{suggestTimerFor.nombre}</strong>?</p>
+            <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+              <label style={{ color: 'var(--text-primary)' }}>Minutos: </label>
+              <input 
+                type="number" 
+                min="1"
+                value={timerMinutesInput} 
+                onChange={(e) => setTimerMinutesInput(e.target.value)} 
+                style={{ width: '60px', padding: '8px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--panel-soft)', color: 'white', textAlign: 'center' }} 
+              />
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px' }}>
+              <button onClick={() => setSuggestTimerFor(null)} style={{ flex: 1, padding: '10px', background: 'var(--panel-soft)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
+              <button onClick={startTimer} style={{ flex: 1, padding: '10px', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Aceptar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Timer Activo */}
+      {activeTimer && (
+        <div style={{
+          position: 'fixed',
+          bottom: activeTimer.isMinimized ? '20px' : '50%',
+          right: activeTimer.isMinimized ? '20px' : '50%',
+          transform: activeTimer.isMinimized ? 'none' : 'translate(50%, 50%)',
+          width: activeTimer.isMinimized ? '200px' : '300px',
+          padding: '20px',
+          background: 'var(--panel-soft)',
+          border: '1px solid var(--accent-color)',
+          borderRadius: '16px',
+          zIndex: 1500,
+          textAlign: 'center',
+          boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+          transition: 'all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)'
+        }}>
+          <h3 style={{ fontSize: activeTimer.isMinimized ? '1.8rem' : '3rem', margin: '0 0 15px 0', color: 'var(--text-primary)', fontFamily: 'monospace' }}>
+            {Math.floor(activeTimer.remainingSeconds / 60)}:{String(activeTimer.remainingSeconds % 60).padStart(2, '0')}
+          </h3>
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '10px' }}>
+            <button onClick={() => setActiveTimer(prev => ({ ...prev, isMinimized: !prev.isMinimized }))} style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: 'var(--panel-bg)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer' }}>
+              {activeTimer.isMinimized ? 'Maximizar' : 'Minimizar'}
+            </button>
+            <button onClick={() => setActiveTimer(null)} style={{ flex: 1, padding: '8px', fontSize: '0.85rem', background: 'transparent', color: 'var(--error-color)', border: '1px solid var(--error-color)', borderRadius: '8px', cursor: 'pointer' }}>
+              Cancelar
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

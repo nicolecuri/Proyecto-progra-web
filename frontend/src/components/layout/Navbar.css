@@ -87,7 +87,7 @@
 
 .profile-dropdown {
   position: absolute;
-  top: calc(100% + 15px);
+  top: calc(100% + 5px);
   right: 0;
   width: 260px;
   padding: 16px 0;
