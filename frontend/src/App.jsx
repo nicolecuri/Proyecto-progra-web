@@ -6,8 +6,8 @@ import Dashboard from "./pages/Dashboard/Dashboard"
 import Progress from "./pages/Progress/Progress"
 import Planner from "./pages/Planner/Planner"
 import AdminUsuarios from "./pages/AdminUsuarios/AdminUsuarios"
-import ProtectedRoute from "./components/ProtectedRoute"
-import Navbar from "./components/Navbar"
+import ProtectedRoute from "./components/layout/ProtectedRoute"
+import Navbar from "./components/layout/Navbar"
 import { ensureAdminUser } from "./services/userStorage"
 
 ensureAdminUser()
