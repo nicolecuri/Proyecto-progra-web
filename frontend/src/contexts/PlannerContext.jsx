@@ -51,7 +51,6 @@ export function PlannerProvider({ children }) {
     addExercise: (diaNombre, ejercicio) => dispatch({ type: 'ADD_EXERCISE', payload: { diaNombre, ejercicio } }),
     editExercise: (diaNombre, id, updates) => dispatch({ type: 'EDIT_EXERCISE', payload: { diaNombre, id, updates } }),
     deleteExercise: (diaNombre, id) => dispatch({ type: 'DELETE_EXERCISE', payload: { diaNombre, id } }),
-    duplicateExercise: (diaNombre, id) => dispatch({ type: 'DUPLICATE_EXERCISE', payload: { diaNombre, id } }),
     moveExercise: (diaNombre, id, direction) => dispatch({ type: 'MOVE_EXERCISE', payload: { diaNombre, id, direction } }),
     reorderExercises: (diaNombre, newOrder) => dispatch({ type: 'REORDER_EXERCISES', payload: { diaNombre, newOrder } }),
     toggleDescanso: (diaNombre) => dispatch({ type: 'TOGGLE_DESCANSO', payload: { diaNombre } }),

@@ -59,24 +59,6 @@ export function plannerReducer(state, action) {
       }
     }
 
-    case 'DUPLICATE_EXERCISE': {
-      const { diaNombre, id } = action.payload
-      return {
-        ...state,
-        plan: {
-          ...state.plan,
-          dias: state.plan.dias.map((d) => {
-            if (d.diaNombre !== diaNombre) return d
-            const toDup = d.ejercicios.find((e) => e.id === id)
-            if (!toDup) return d
-            const orden = Math.max(...d.ejercicios.map((e) => e.orden)) + 1
-            const dup = { ...toDup, id: genId(), orden }
-            return { ...d, ejercicios: [...d.ejercicios, dup] }
-          }),
-        },
-      }
-    }
-
     case 'MOVE_EXERCISE': {
       const { diaNombre, id, direction } = action.payload
       return {
