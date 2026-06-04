@@ -218,15 +218,18 @@ const Dashboard = () => {
             value={currentStatus}
             onChange={(e) => handleStatusChange(workout.id, e.target.value)}
             style={{
-              padding: '8px 12px',
+              padding: '8px 30px 8px 12px',
               borderRadius: '8px',
               border: `1px solid ${getStatusBorder(currentStatus)}`,
-              background: getStatusColor(currentStatus),
+              background: `${getStatusColor(currentStatus)} url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 10px center`,
               color: 'var(--text-primary)',
               outline: 'none',
               cursor: 'pointer',
               fontWeight: '500',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              appearance: 'none',
+              WebkitAppearance: 'none',
+              MozAppearance: 'none'
             }}
           >
             <option value="todo" style={{background: 'var(--panel-bg)'}}>Por realizar</option>
