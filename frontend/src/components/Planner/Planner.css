@@ -69,3 +69,20 @@
 }
 
 @media (max-width:900px){.planner-root{flex-direction:column}.planner-left{max-width:none}}
+
+/* Nuevos estilos para las barras de progreso de volumen por músculo */
+.muscle-progress-bg {
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+
+.muscle-progress-bar {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #14b8a6);
+  border-radius: 4px;
+  transition: width 0.4s ease-out;
+}

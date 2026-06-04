@@ -7,6 +7,12 @@ export default function DashboardPanel({ resumen, savedRoutines = [], previewRou
   const previewRoutine = savedRoutines.find((routine) => routine.id === previewRoutineId) || savedRoutines[savedRoutines.length - 1]
   const previewSummary = previewRoutine ? summarizeWeek(previewRoutine.plan) : null
 
+  // Helper para calcular un porcentaje visual de las series (tope de 24 series como 100%)
+  const calcularPorcentajeSeries = (series) => {
+    const maxSeriesRecomendadas = 24;
+    return Math.min(Math.round((series / maxSeriesRecomendadas) * 100), 100);
+  };
+
   return (
     <aside className="planner-left">
       <div className="card">
@@ -76,13 +82,22 @@ export default function DashboardPanel({ resumen, savedRoutines = [], previewRou
       <div className="card">
         <h4>Volumen por músculo</h4>
         <div className="muscle-list">
-          {muscles.length===0 && <div className="muscle-item">Sin datos aún</div>}
-          {muscles.map((m)=> (
-            <div key={m} className="muscle-item">
-              <div>{m} → {resumen.volumenPorMusculo[m]} series</div>
-              <div>{volumeStatus(resumen.volumenPorMusculo[m])}</div>
-            </div>
-          ))}
+          {muscles.length === 0 && <div className="muscle-item">Sin datos aún</div>}
+          {muscles.map((m) => {
+            const series = resumen.volumenPorMusculo[m];
+            const porcentaje = calcularPorcentajeSeries(series);
+            return (
+              <div key={m} className="muscle-progress-container" style={{ marginBottom: '14px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '4px' }}>
+                  <span style={{ fontWeight: 500 }}>{m}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>{series} series ({volumeStatus(series)})</span>
+                </div>
+                <div className="muscle-progress-bg">
+                  <div className="muscle-progress-bar" style={{ width: `${porcentaje}%` }}></div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
 
