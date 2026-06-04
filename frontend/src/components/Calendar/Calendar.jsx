@@ -18,7 +18,11 @@ const Calendar = ({ workoutData }) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
   };
 
-
+  const getIntensity = (day) => {
+    const dateStr = formatDate(day);
+    const workout = workoutData.find(w => w.date === dateStr);
+    return workout ? workout.intensity : 0;
+  };
 
   // Rellenar espacios en blanco antes del primer día
   const blanks = Array(firstDay === 0 ? 6 : firstDay - 1).fill(null); // Empezando el Lunes
@@ -55,7 +59,7 @@ const Calendar = ({ workoutData }) => {
         {days.map(day => {
           const dateStr = formatDate(day);
           const workout = workoutData.find(w => w.date === dateStr);
-          const intensity = workout ? workout.intensity : 0;
+          const intensity = getIntensity(day);
           return (
             <div 
               key={day} 

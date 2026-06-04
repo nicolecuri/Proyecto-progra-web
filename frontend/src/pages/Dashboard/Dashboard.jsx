@@ -112,6 +112,26 @@ const Dashboard = () => {
     };
   }, [todayPlan, tracking]);
 
+  // Guardar historial diario cuando las estadísticas cambien
+  useEffect(() => {
+    if (stats.time > 0) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      const historyRaw = localStorage.getItem('fitplanner-history');
+      const history = historyRaw ? JSON.parse(historyRaw) : {};
+      
+      const calcIntensity = Math.min(4, Math.ceil(stats.time / 20));
+
+      history[todayStr] = {
+        date: todayStr,
+        intensity: calcIntensity,
+        time: `${stats.time} min`,
+        muscles: stats.muscles
+      };
+      
+      localStorage.setItem('fitplanner-history', JSON.stringify(history));
+    }
+  }, [stats]);
+
   const handleStatusChange = (id, newStatus, minutesSpent = null) => {
     setTracking(prev => {
       let updatedValue = newStatus;
