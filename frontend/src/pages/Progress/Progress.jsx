@@ -135,44 +135,54 @@ const Progress = () => {
   const selectedProgress = progressByRoutine[rutinaSeleccionada] || { completedExercises: {}, dayComments: {} };
 
   const calendarEntries = useMemo(() => {
-    return Object.entries(progressByRoutine).flatMap(([routineId, progress]) => {
-      const rutina = rutinas.find((r) => r.id === routineId);
-      const diasRutina = rutina?.plan?.dias || [];
-      return Object.entries(progress.dayComments || {}).map(([diaNombre, comentario]) => {
-        if (!comentario?.fecha) return null;
-        const fecha = comentario.fecha.slice(0, 10);
-        const dia = diasRutina.find((d) => d.diaNombre === diaNombre);
-        const muscles = dia?.ejercicios?.map((ej) => ej.grupoMuscularPrincipal).filter(Boolean).join(', ') || 'Entrenamiento';
-        
-        // Calcular tiempo real basado en ejercicios completados
-        let totalMinutes = 0;
-        if (dia?.ejercicios && progress.completedExercises) {
-          dia.ejercicios.forEach((ej) => {
-            if (progress.completedExercises[ej.id]) {
-              const minPerExercise = (Number(ej.series) || 1) * (Number(ej.tiempoPorSerie) || 3);
-              totalMinutes += minPerExercise;
+    try {
+      return Object.entries(progressByRoutine).flatMap(([routineId, progress]) => {
+        try {
+          const rutina = rutinas.find((r) => r.id === routineId);
+          const diasRutina = Array.isArray(rutina?.plan?.dias) ? rutina.plan.dias : [];
+          
+          return Object.entries(progress?.dayComments || {}).map(([diaNombre, comentario]) => {
+            try {
+              if (!comentario || !comentario.fecha) return null;
+              
+              // Asegurar que fecha es string antes de slice
+              const fechaStr = String(comentario.fecha);
+              const fecha = fechaStr.slice(0, 10);
+              
+              const dia = diasRutina.find((d) => d?.diaNombre === diaNombre);
+              const muscles = dia?.ejercicios?.map((ej) => ej?.grupoMuscularPrincipal).filter(Boolean).join(', ') || 'Entrenamiento';
+              const time = comentario.tiempo || (Array.isArray(dia?.ejercicios) && dia.ejercicios.length ? `${dia.ejercicios.reduce((sum, ej) => sum + (Number(ej?.tiempoPorSerie) || 0), 0)} min` : 'N/A');
+              
+              return {
+                date: fecha,
+                intensity: Number(comentario.intensidad) || 0,
+                muscles,
+                time,
+                rutinaId: routineId,
+                dia: diaNombre,
+                completed: comentario.completed,
+                comments: comentario.comentarios || '',
+              };
+            } catch (dayError) {
+              console.warn(`Error procesando día ${diaNombre}:`, dayError);
+              return null;
             }
-          });
+          }).filter(Boolean);
+        } catch (routineError) {
+          console.warn(`Error procesando rutina ${routineId}:`, routineError);
+          return [];
         }
-        
-        const time = totalMinutes > 0 ? `${totalMinutes} min` : comentario.tiempo || 'N/A';
-        const timeMinutes = totalMinutes > 0 ? totalMinutes : parseMinutes(comentario.tiempo || '0');
-        const calories = timeMinutes * 5; // 5 kcal por minuto
-        
-        return {
-          date: fecha,
-          intensity: Number(comentario.intensidad) || 0,
-          muscles,
-          time,
-          timeMinutes,
-          calories,
-          rutinaId: routineId,
-          dia: diaNombre,
-          completed: comentario.completed,
-          comments: comentario.comentarios || '',
-        };
-      }).filter(Boolean);
-    }).sort((a, b) => a.date.localeCompare(b.date));
+      }).sort((a, b) => {
+        try {
+          return a.date.localeCompare(b.date);
+        } catch {
+          return 0;
+        }
+      });
+    } catch (error) {
+      console.error('Error crítico en calendarEntries:', error);
+      return [];
+    }
   }, [progressByRoutine, rutinas]);
 
   const workouts = calendarEntries;
@@ -182,53 +192,102 @@ const Progress = () => {
   const month = String(monthIdx + 1).padStart(2, '0');
 
   const thisMonthWorkouts = useMemo(
-    () => workouts.filter((w) => w.date.startsWith(`${year}-${month}`)),
+    () => workouts.filter((w) => {
+      try {
+        return w?.date && String(w.date).startsWith(`${year}-${month}`);
+      } catch {
+        return false;
+      }
+    }),
     [workouts, year, month]
   );
 
   const parseMinutes = (value) => {
-    const mins = parseInt((value || '0').replace(/\D/g, ''), 10);
-    return Number.isNaN(mins) ? 0 : mins;
+    try {
+      const mins = parseInt((value || '0').replace(/\D/g, ''), 10);
+      return Number.isNaN(mins) ? 0 : mins;
+    } catch {
+      return 0;
+    }
   };
 
   const totalMinutesThisMonth = useMemo(
-    () => thisMonthWorkouts.reduce((acc, w) => acc + (w.timeMinutes || parseMinutes(w.time)), 0),
+    () => thisMonthWorkouts.reduce((acc, w) => acc + parseMinutes(w.time), 0),
     [thisMonthWorkouts]
   );
 
   const totalCaloriesThisMonth = totalMinutesThisMonth * 5;
 
   const last7Days = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
-      const d = new Date(today);
-      d.setDate(d.getDate() - (6 - i));
-      const dateStr = formatDate(d);
-      const wo = workouts.find((w) => w.date === dateStr);
-      const mins = wo ? (wo.timeMinutes || parseMinutes(wo.time)) : 0;
-      return {
-        label: DAYS_ES[d.getDay()],
-        date: dateStr,
-        mins,
-        intensity: wo ? wo.intensity : 0,
-        isToday: dateStr === formatDate(today),
-      };
-    });
+    try {
+      return Array.from({ length: 7 }, (_, i) => {
+        try {
+          const d = new Date(today);
+          d.setDate(d.getDate() - (6 - i));
+          const dateStr = formatDate(d);
+          const wo = workouts.find((w) => {
+            try {
+              return String(w?.date) === dateStr;
+            } catch {
+              return false;
+            }
+          });
+          const mins = wo ? parseMinutes(wo.time) : 0;
+          return {
+            label: DAYS_ES[d.getDay()] || 'N/A',
+            date: dateStr,
+            mins,
+            intensity: wo?.intensity || 0,
+            isToday: dateStr === formatDate(today),
+          };
+        } catch (dayError) {
+          console.warn('Error calculando día 7d:', dayError);
+          return {
+            label: 'N/A',
+            date: '',
+            mins: 0,
+            intensity: 0,
+            isToday: false,
+          };
+        }
+      });
+    } catch (error) {
+      console.error('Error en last7Days:', error);
+      return [];
+    }
   }, [workouts, today]);
 
-  const maxMins = Math.max(...last7Days.map((d) => d.mins), 30);
+  const maxMins = (() => {
+    try {
+      const mins = Array.isArray(last7Days) ? last7Days.map((d) => d?.mins || 0) : [];
+      return Math.max(...mins, 30);
+    } catch {
+      return 30;
+    }
+  })();
 
   const muscleFrequency = useMemo(() => {
-    const freq = {};
-    workouts.forEach((w) => {
-      if (!w.muscles || w.muscles === 'Ninguno') return;
-      const groups = w.muscles.split(',').map((s) => s.trim()).filter(Boolean);
-      groups.forEach((g) => {
-        freq[g] = (freq[g] || 0) + 1;
+    try {
+      const freq = {};
+      (Array.isArray(workouts) ? workouts : []).forEach((w) => {
+        try {
+          if (!w?.muscles || w.muscles === 'Ninguno') return;
+          const musclesStr = String(w.muscles);
+          const groups = musclesStr.split(',').map((s) => s.trim()).filter(Boolean);
+          groups.forEach((g) => {
+            freq[g] = (freq[g] || 0) + 1;
+          });
+        } catch {
+          // Ignorar errores en elementos individuales
+        }
       });
-    });
-    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5);
-    const maxFreq = sorted[0]?.[1] || 1;
-    return sorted.map(([name, count]) => ({ name, count, pct: Math.round((count / maxFreq) * 100) }));
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      const maxFreq = sorted[0]?.[1] || 1;
+      return sorted.map(([name, count]) => ({ name, count, pct: Math.round((count / maxFreq) * 100) }));
+    } catch (error) {
+      console.error('Error en muscleFrequency:', error);
+      return [];
+    }
   }, [workouts]);
 
   const activeDaysThisMonth = thisMonthWorkouts.length;
@@ -236,11 +295,23 @@ const Progress = () => {
 
   const isExerciseCompleted = (exerciseId) => Boolean(selectedProgress.completedExercises?.[exerciseId]);
 
-  const completedExercisesCount = (day) => day.ejercicios?.filter((ej) => isExerciseCompleted(ej.id)).length || 0;
+  const completedExercisesCount = (day) => {
+    try {
+      return Array.isArray(day?.ejercicios)
+        ? day.ejercicios.filter((ej) => ej?.id && isExerciseCompleted(ej.id)).length
+        : 0;
+    } catch {
+      return 0;
+    }
+  };
 
   const isDayCompleted = (day) => {
-    if (day.isDescanso || !day.ejercicios || day.ejercicios.length === 0) return false;
-    return completedExercisesCount(day) === day.ejercicios.length;
+    try {
+      if (!day || day.isDescanso || !Array.isArray(day?.ejercicios) || day.ejercicios.length === 0) return false;
+      return completedExercisesCount(day) === day.ejercicios.length;
+    } catch {
+      return false;
+    }
   };
 
   const updateTodayTrackingIfNeeded = (exerciseId, completed, dayName) => {
