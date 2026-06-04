@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import '../Planner/Planner.css'
 import { FLATTENED_EXERCISES, EXERCISE_DB } from '../../services/exerciseDB'
 

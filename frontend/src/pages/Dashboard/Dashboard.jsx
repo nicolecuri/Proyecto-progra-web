@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { getCurrentUser } from '../../services/userStorage';
 
@@ -14,32 +14,27 @@ const getMuscleEmoji = (muscleGroup) => {
 
 const Dashboard = () => {
   const [routines, setRoutines] = useState([]);
-  const [activeRoutineId, setActiveRoutineId] = useState('draft');
-  const [todayPlan, setTodayPlan] = useState(null);
-  const [tracking, setTracking] = useState({});
-
-  // Timer states
-  const [suggestTimerFor, setSuggestTimerFor] = useState(null);
-  const [timerMinutesInput, setTimerMinutesInput] = useState(3);
-  const [activeTimer, setActiveTimer] = useState(null);
-
-  useEffect(() => {
-    // Cargar historial de tracking de hoy
+  const [activeRoutineId, setActiveRoutineId] = useState('');
+  const [tracking, setTracking] = useState(() => {
     const todayStr = new Date().toISOString().split('T')[0];
     const trackingCacheKey = `fitplanner-tracking-${todayStr}`;
     const savedTracking = localStorage.getItem(trackingCacheKey);
     if (savedTracking) {
       try {
-        setTracking(JSON.parse(savedTracking));
+        return JSON.parse(savedTracking);
       } catch (e) {
         console.error('Error parsing tracking data:', e);
       }
     }
+    return {};
+  });
 
-    // Cargar rutinas y rutina activa seleccionada previamente
-    const savedActiveId = localStorage.getItem('fitplanner-active-routine') || 'draft';
-    setActiveRoutineId(savedActiveId);
+  // Timer states
+  const [suggestTimerFor, setSuggestTimerFor] = useState(null);
+  const [activeTimer, setActiveTimer] = useState(null);
+  const navigate = useNavigate();
 
+  useEffect(() => {
     try {
       const user = getCurrentUser()
       const ident = user ? (user.correo || user.id || user.nombre) : 'guest'
@@ -47,20 +42,30 @@ const Dashboard = () => {
       const persisted = localStorage.getItem(key)
       if (persisted) {
         const parsed = JSON.parse(persisted)
-        const allRoutines = [{ id: 'draft', nombre: parsed.plan?.nombre || 'Borrador Actual', plan: parsed.plan }]
+        const allRoutines = []
         if (parsed.savedRoutines && parsed.savedRoutines.length > 0) {
           allRoutines.push(...parsed.savedRoutines)
         }
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setRoutines(allRoutines)
+
+        // Cargar rutina activa seleccionada previamente o usar la primera disponible
+        const savedActiveId = localStorage.getItem('fitplanner-active-routine');
+        if (savedActiveId && savedActiveId !== 'draft' && allRoutines.some(r => r.id === savedActiveId)) {
+          setActiveRoutineId(savedActiveId);
+        } else if (allRoutines.length > 0) {
+          setActiveRoutineId(allRoutines[0].id);
+          localStorage.setItem('fitplanner-active-routine', allRoutines[0].id);
+        }
       }
     } catch (e) {
       console.error('Error cargando rutinas desde caché:', e)
     }
   }, []);
 
-  // Efecto secundario: cuando cambia la rutina activa, actualizar todayPlan
-  useEffect(() => {
-    if (routines.length === 0) return;
+  // Cálculo dinámico de todayPlan sin usar effect para evitar renders dobles
+  const todayPlan = useMemo(() => {
+    if (routines.length === 0) return null;
     
     const activeRoutine = routines.find(r => r.id === activeRoutineId) || routines[0];
     const plan = activeRoutine?.plan;
@@ -72,39 +77,49 @@ const Dashboard = () => {
       
       const currentDay = plan.dias.find(d => d.diaNombre === todayName);
       if (currentDay && !currentDay.isDescanso && currentDay.ejercicios && currentDay.ejercicios.length > 0) {
-        setTodayPlan(currentDay);
-      } else {
-        setTodayPlan(null);
+        return currentDay;
       }
-    } else {
-      setTodayPlan(null);
     }
+    return null;
   }, [activeRoutineId, routines]);
 
   // Cálculo de estadísticas dinámicas basadas en ejercicios completados
   const stats = useMemo(() => {
     if (!todayPlan) return { time: 0, calories: 0, muscles: 'Ninguno' };
     
-    let totalSeriesDone = 0;
+    let totalTime = 0;
     const musclesSet = new Set();
     
     todayPlan.ejercicios.forEach(ex => {
-      if (tracking[ex.id] === 'done') {
-        totalSeriesDone += (Number(ex.series) || 0);
+      const trackVal = tracking[ex.id];
+      const isDone = trackVal === 'done' || trackVal?.status === 'done';
+      
+      if (isDone) {
         if (ex.grupoMuscularPrincipal) musclesSet.add(ex.grupoMuscularPrincipal);
+        
+        let minSpent = (Number(ex.series) || 0) * (Number(ex.tiempoPorSerie) || 3); // Default 3 min por serie
+        if (typeof trackVal === 'object' && trackVal.minutes) {
+          minSpent = trackVal.minutes; // Tiempo real ajustado en el timer
+        }
+        totalTime += minSpent;
       }
     });
 
     return {
-      time: totalSeriesDone * 3, // 3 min por serie
-      calories: totalSeriesDone * 15, // 15 kcal por serie
+      time: totalTime,
+      calories: totalTime * 5, // 5 kcal por minuto (15 kcal / 3 min)
       muscles: Array.from(musclesSet).join(', ') || 'Ninguno'
     };
   }, [todayPlan, tracking]);
 
-  const handleStatusChange = (id, newStatus) => {
+  const handleStatusChange = (id, newStatus, minutesSpent = null) => {
     setTracking(prev => {
-      const updated = { ...prev, [id]: newStatus };
+      let updatedValue = newStatus;
+      if (newStatus === 'done' && minutesSpent !== null) {
+        updatedValue = { status: 'done', minutes: Number(minutesSpent) };
+      }
+
+      const updated = { ...prev, [id]: updatedValue };
       const todayStr = new Date().toISOString().split('T')[0];
       const cacheKey = `fitplanner-tracking-${todayStr}`;
       localStorage.setItem(cacheKey, JSON.stringify(updated));
@@ -115,15 +130,17 @@ const Dashboard = () => {
        const workout = todayPlan.ejercicios.find(ex => ex.id === id);
        if (workout) {
          setSuggestTimerFor(workout);
-         setTimerMinutesInput(workout.series * 3 || 3);
        }
     }
   };
 
   const startTimer = () => {
+    if (!suggestTimerFor) return;
+    const minutes = (Number(suggestTimerFor.series) || 0) * (Number(suggestTimerFor.tiempoPorSerie) || 3);
     setActiveTimer({
       workoutId: suggestTimerFor.id,
-      remainingSeconds: Math.max(1, timerMinutesInput * 60),
+      remainingSeconds: Math.max(1, minutes * 60),
+      originalMinutes: minutes,
       isMinimized: false
     });
     setSuggestTimerFor(null);
@@ -138,7 +155,7 @@ const Dashboard = () => {
           if (prev.remainingSeconds <= 1) {
             clearInterval(interval);
             // Marcar como realizado automáticamente
-            handleStatusChange(prev.workoutId, 'done');
+            handleStatusChange(prev.workoutId, 'done', prev.originalMinutes);
             return null; // El timer termina
           }
           return { ...prev, remainingSeconds: prev.remainingSeconds - 1 };
@@ -148,6 +165,7 @@ const Dashboard = () => {
     return () => {
       if (interval) clearInterval(interval);
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTimer]);
 
   const handleRoutineChange = (e) => {
@@ -172,7 +190,8 @@ const Dashboard = () => {
     if (!todayPlan) return { todo: [], inProgress: [], done: [] };
     const result = { todo: [], inProgress: [], done: [] };
     todayPlan.ejercicios.forEach(ex => {
-      const st = tracking[ex.id] || 'todo';
+      const trackVal = tracking[ex.id];
+      const st = typeof trackVal === 'object' ? trackVal.status : (trackVal || 'todo');
       if (st === 'done') result.done.push(ex);
       else if (st === 'in-progress') result.inProgress.push(ex);
       else result.todo.push(ex);
@@ -181,7 +200,8 @@ const Dashboard = () => {
   }, [todayPlan, tracking]);
 
   const renderExercise = (workout) => {
-    const currentStatus = tracking[workout.id] || 'todo';
+    const trackVal = tracking[workout.id];
+    const currentStatus = typeof trackVal === 'object' ? trackVal.status : (trackVal || 'todo');
     return (
       <div key={workout.id} className="workout-item" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <div style={{display: 'flex', alignItems: 'center', gap: '16px'}}>
@@ -229,13 +249,29 @@ const Dashboard = () => {
           <div style={{ background: 'var(--panel-soft)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border-color)', minWidth: '250px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Rutina Activa:</label>
             <select 
-              value={activeRoutineId} 
+              value={activeRoutineId || ''} 
               onChange={handleRoutineChange}
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', background: 'var(--panel-bg)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+              style={{ 
+                width: '100%', 
+                padding: '10px 36px 10px 10px', 
+                borderRadius: '8px', 
+                background: `var(--panel-bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") no-repeat right 12px center`, 
+                color: 'var(--text-primary)', 
+                border: '1px solid var(--border-color)', 
+                boxSizing: 'border-box',
+                appearance: 'none',
+                WebkitAppearance: 'none',
+                MozAppearance: 'none',
+                minHeight: '44px'
+              }}
             >
-              {routines.map(r => (
-                <option key={r.id} value={r.id}>{r.nombre}</option>
-              ))}
+              {routines.length === 0 ? (
+                <option value="">Sin rutinas</option>
+              ) : (
+                routines.map(r => (
+                  <option key={r.id} value={r.id}>{r.nombre}</option>
+                ))
+              )}
             </select>
           </div>
         </section>
@@ -316,19 +352,16 @@ const Dashboard = () => {
           <div className="glass-panel" style={{ padding: '25px', borderRadius: '16px', width: '320px', textAlign: 'center', background: 'var(--panel-bg)' }}>
             <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Iniciar Temporizador</h3>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>¿Deseas iniciar un contador para <strong>{suggestTimerFor.nombre}</strong>?</p>
-            <div style={{ margin: '20px 0', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-              <label style={{ color: 'var(--text-primary)' }}>Minutos: </label>
-              <input 
-                type="number" 
-                min="1"
-                value={timerMinutesInput} 
-                onChange={(e) => setTimerMinutesInput(e.target.value)} 
-                style={{ width: '60px', padding: '8px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--panel-soft)', color: 'white', textAlign: 'center' }} 
-              />
+            <div style={{ margin: '20px 0', padding: '15px', background: 'var(--panel-soft)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+              <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', fontWeight: 'bold' }}>
+                {(Number(suggestTimerFor.series) || 0) * (Number(suggestTimerFor.tiempoPorSerie) || 3)} minutos
+              </div>
+              <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '4px' }}>Tiempo estimado para tus series</div>
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '15px' }}>
-              <button onClick={() => setSuggestTimerFor(null)} style={{ flex: 1, padding: '10px', background: 'var(--panel-soft)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Cancelar</button>
-              <button onClick={startTimer} style={{ flex: 1, padding: '10px', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}>Aceptar</button>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: '10px' }}>
+              <button onClick={() => setSuggestTimerFor(null)} style={{ flex: 1, padding: '10px', background: 'var(--panel-soft)', color: 'white', border: '1px solid var(--border-color)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Cancelar</button>
+              <button onClick={() => navigate('/planner')} style={{ flex: 1, padding: '10px', background: 'var(--panel-soft)', color: 'var(--accent-secondary)', border: '1px solid var(--accent-secondary)', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Editar</button>
+              <button onClick={startTimer} style={{ flex: 1, padding: '10px', background: 'var(--accent-color)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', fontSize: '0.9rem' }}>Aceptar</button>
             </div>
           </div>
         </div>

@@ -5,7 +5,7 @@
 
 /** @typedef {{ id: string, nombre: string, grupoMuscularPrincipal: string, gruposSecundarios: string[] }} GrupoEjercicio */
 
-/** @typedef {{ id: string, nombre: string, grupoMuscularPrincipal: string, gruposSecundarios: string[], series: number, repeticiones: number, peso: number, notas?: string, orden: number }} EjercicioPlanificado */
+/** @typedef {{ id: string, nombre: string, grupoMuscularPrincipal: string, gruposSecundarios: string[], series: number, repeticiones: number, peso: number, tiempoPorSerie?: number, notas?: string, orden: number }} EjercicioPlanificado */
 
 /** @typedef {{ diaNombre: string, ejercicios: EjercicioPlanificado[], isDescanso?: boolean }} DiaEntrenamiento */
 

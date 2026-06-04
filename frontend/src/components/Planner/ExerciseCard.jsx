@@ -1,4 +1,4 @@
-import React from 'react'
+
 import '../Planner/Planner.css'
 import { calculateExerciseVolume } from '../../utils/calculations'
 
@@ -41,6 +41,15 @@ export default function ExerciseCard({ ejercicio, diaNombre, onEdit, onDelete })
               <button className="step-btn" onClick={() => updateField('peso', ejercicio.peso - 1)}>-</button>
               <input className="small-input" value={ejercicio.peso} onChange={(e) => updateField('peso', e.target.value)} />
               <button className="step-btn" onClick={() => updateField('peso', ejercicio.peso + 1)}>+</button>
+            </div>
+          </div>
+
+          <div className="field-control">
+            <span>Min / Serie</span>
+            <div className="value-control">
+              <button className="step-btn" onClick={() => updateField('tiempoPorSerie', (ejercicio.tiempoPorSerie || 3) - 1)}>-</button>
+              <input className="small-input" value={ejercicio.tiempoPorSerie || 3} onChange={(e) => updateField('tiempoPorSerie', e.target.value)} />
+              <button className="step-btn" onClick={() => updateField('tiempoPorSerie', (ejercicio.tiempoPorSerie || 3) + 1)}>+</button>
             </div>
           </div>
         </div>

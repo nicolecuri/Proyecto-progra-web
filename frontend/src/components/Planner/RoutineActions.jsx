@@ -6,6 +6,7 @@ export default function RoutineActions({ onSave, onDownload, onPrint, editingRou
 
   React.useEffect(() => {
     if (editingRoutineId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setName(currentRoutineName || '')
     } else {
       setName('')

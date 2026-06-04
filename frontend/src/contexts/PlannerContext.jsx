@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useReducer, useMemo, useEffect } from 'react'
+import { createContext, useReducer, useEffect, useMemo, useContext } from 'react'
 import { plannerReducer, initialPlan } from './plannerReducer'
 import { getCurrentUser } from '../services/userStorage'
 import { summarizeWeek } from '../utils/calculations'
@@ -67,6 +67,7 @@ export function PlannerProvider({ children }) {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePlanner() {
   const ctx = useContext(PlannerContext)
   if (!ctx) throw new Error('usePlanner must be used inside PlannerProvider')
