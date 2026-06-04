@@ -238,6 +238,20 @@ const Dashboard = () => {
     );
   };
 
+  const renderExerciseSection = (title, exercises, titleColor) => {
+    if (exercises.length === 0) return null;
+    return (
+      <div style={{ marginBottom: '20px' }}>
+        <h3 style={{ fontSize: '1.1rem', color: titleColor, marginBottom: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>
+          {title}
+        </h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          {exercises.map(renderExercise)}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="dashboard-wrapper">
       <main className="dashboard-content">
@@ -314,32 +328,9 @@ const Dashboard = () => {
               </div>
             ) : (
               <>
-                {groupedExercises.todo.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--text-secondary)', marginBottom: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>Por realizar</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {groupedExercises.todo.map(renderExercise)}
-                    </div>
-                  </div>
-                )}
-                
-                {groupedExercises.inProgress.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--accent-secondary)', marginBottom: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>Realizándose</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {groupedExercises.inProgress.map(renderExercise)}
-                    </div>
-                  </div>
-                )}
-                
-                {groupedExercises.done.length > 0 && (
-                  <div style={{ marginBottom: '20px' }}>
-                    <h3 style={{ fontSize: '1.1rem', color: 'var(--success-color)', marginBottom: '12px', borderBottom: '1px solid var(--border-color)', paddingBottom: '8px' }}>Realizados</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      {groupedExercises.done.map(renderExercise)}
-                    </div>
-                  </div>
-                )}
+                {renderExerciseSection('Por realizar', groupedExercises.todo, 'var(--text-secondary)')}
+                {renderExerciseSection('Realizándose', groupedExercises.inProgress, 'var(--accent-secondary)')}
+                {renderExerciseSection('Realizados', groupedExercises.done, 'var(--success-color)')}
               </>
             )}
           </div>
