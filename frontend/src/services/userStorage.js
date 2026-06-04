@@ -126,6 +126,22 @@ export function registrarUsuario({ nombre, correo, password }) {
   return nuevoUsuario
 }
 
+export function actualizarPerfil(id, datosActualizados) {
+  const usuarios = obtenerUsuarios()
+  const index = usuarios.findIndex(u => u.id === Number(id))
+  if (index === -1) return null
+
+  usuarios[index] = { ...usuarios[index], ...datosActualizados }
+  guardarUsuarios(usuarios)
+
+  const currentUser = getCurrentUser()
+  if (currentUser && currentUser.id === Number(id)) {
+    localStorage.setItem(STORAGE_KEY_CURRENT_USER, JSON.stringify(usuarios[index]))
+  }
+
+  return usuarios[index]
+}
+
 export function obtenerEntrenamientosDeUsuario(userId) {
   try {
     const stored = localStorage.getItem(STORAGE_KEY_WORKOUTS)

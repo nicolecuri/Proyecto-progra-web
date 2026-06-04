@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   obtenerUsuarios,
-  buscarUsuarioPorId,
   eliminarUsuario,
   obtenerEstadisticasUsuarios,
   obtenerConteoEntrenamientos,
@@ -12,16 +11,12 @@ import UserDetailModal from '../../components/Admin/UserDetailModal'
 import './AdminUsuarios.css'
 
 const AdminUsuarios = () => {
-  const [usuarios, setUsuarios] = useState([])
+  const [usuarios, setUsuarios] = useState(obtenerUsuarios)
   const [search, setSearch] = useState('')
   const [filterRole, setFilterRole] = useState('todos')
   const [selectedUser, setSelectedUser] = useState(null)
   const [workoutCounts, setWorkoutCounts] = useState({ registrados: 0, completados: 0, pendientes: 0 })
   const [message, setMessage] = useState('')
-
-  useEffect(() => {
-    setUsuarios(obtenerUsuarios())
-  }, [])
 
   const stats = useMemo(() => obtenerEstadisticasUsuarios(usuarios), [usuarios])
 

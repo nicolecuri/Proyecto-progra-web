@@ -1,0 +1,453 @@
+.profile-wrapper {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 32px 80px;
+  min-height: calc(100vh - 90px);
+  animation: slideUpFade 0.6s ease-out forwards;
+}
+
+/* ── Hero / Avatar ──────────────────────────────────── */
+.profile-hero {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-bottom: 36px;
+  padding: 28px 32px;
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.profile-avatar-ring {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+  padding: 3px;
+  flex-shrink: 0;
+  box-shadow: 0 0 24px rgba(139,92,246,0.4);
+}
+
+.profile-avatar-circle {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: var(--surface-color-solid);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.profile-avatar-initials {
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.profile-hero-info h1 {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.profile-hero-sub {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-bottom: 10px;
+}
+
+.profile-bmi-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 99px;
+  border: 1px solid;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+/* ── Tabs ───────────────────────────────────────────── */
+.profile-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--panel-soft);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 6px;
+}
+
+.profile-tab {
+  flex: 1;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.profile-tab:hover {
+  color: var(--text-primary);
+  background: rgba(255,255,255,0.05);
+}
+
+.profile-tab.active {
+  background: var(--accent-color);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(139,92,246,0.35);
+}
+
+/* ── Form ───────────────────────────────────────────── */
+.profile-form-container {
+  padding: 0;
+  overflow: hidden;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 28px 32px 32px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.form-group label {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.88rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.form-group input,
+.form-group select {
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--panel-bg);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-group select {
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 38px;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px rgba(139,92,246,0.2);
+  background: var(--input-bg);
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.success-message {
+  padding: 14px 20px;
+  background: rgba(16,185,129,0.12);
+  border: 1px solid var(--success-color);
+  color: var(--success-color);
+  border-radius: 10px;
+  margin: 20px 32px 0;
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.95rem;
+  animation: slideUpFade 0.3s ease-out;
+}
+
+/* ── Biometric Tab ──────────────────────────────────── */
+.biometric-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.biometric-empty {
+  padding: 56px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.biometric-empty-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: 8px;
+}
+
+.biometric-empty h3 {
+  font-size: 1.3rem;
+  color: var(--text-primary);
+}
+
+.biometric-empty p {
+  color: var(--text-secondary);
+  max-width: 340px;
+}
+
+/* ── BMI Card ── */
+.bmi-card {
+  padding: 28px 32px;
+}
+
+.bmi-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.bmi-card-header h2 {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.bmi-value {
+  font-size: 2.4rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.bmi-bar-track {
+  height: 12px;
+  border-radius: 99px;
+  background: linear-gradient(90deg,
+    #06b6d4 0%,
+    #10b981 33%,
+    #f59e0b 66%,
+    #ef4444 100%);
+  position: relative;
+  margin-bottom: 8px;
+  overflow: visible;
+}
+
+/* We keep the gradient fixed and use the pointer */
+.bmi-bar-pointer {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--surface-color-solid);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  transition: left 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 2;
+}
+
+.bmi-scale-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.bmi-result-badge {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.bmi-result-badge strong {
+  display: block;
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.bmi-result-badge p {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
+/* ── Biometric metric grid ── */
+.biometric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 16px;
+}
+
+.biometric-metric {
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  transition: transform 0.3s;
+}
+
+.biometric-metric:hover {
+  transform: translateY(-3px);
+}
+
+.biometric-metric-icon {
+  font-size: 1.6rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: var(--panel-soft);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.biometric-metric-info h4 {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.biometric-metric-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.biometric-metric-value span {
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.biometric-metric-sub {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  display: block;
+}
+
+/* ── Calorie Guide ── */
+.calorie-guide {
+  padding: 24px 28px;
+}
+
+.calorie-guide h3 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.calorie-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.calorie-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: var(--panel-soft);
+  border: 1px solid transparent;
+  transition: all 0.25s;
+}
+
+.calorie-row-active {
+  border-color: var(--accent-color) !important;
+  background: rgba(139,92,246,0.1) !important;
+}
+
+.calorie-row-icon {
+  font-size: 1.1rem;
+  width: 28px;
+  text-align: center;
+}
+
+.calorie-row-label {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.calorie-row-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.calorie-disclaimer {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  border-top: 1px solid var(--border-color);
+  padding-top: 14px;
+  margin: 0;
+}
+
+/* ── Animations ─────────────────────────────────────── */
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Responsive ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  .profile-wrapper { padding: 20px 16px 60px; }
+  .profile-hero { flex-direction: column; text-align: center; padding: 24px 20px; }
+  .form-row { grid-template-columns: 1fr; }
+  .profile-form { padding: 20px; }
+  .bmi-card { padding: 20px; }
+  .biometric-grid { grid-template-columns: 1fr 1fr; }
+  .calorie-guide { padding: 20px; }
+}
+
+@media (max-width: 400px) {
+  .biometric-grid { grid-template-columns: 1fr; }
+}

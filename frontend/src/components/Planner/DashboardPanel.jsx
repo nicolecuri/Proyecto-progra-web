@@ -1,11 +1,9 @@
-import React from 'react'
 import '../Planner/Planner.css'
-import { volumeStatus, summarizeWeek } from '../../utils/calculations'
+import { volumeStatus } from '../../utils/calculations'
 
 export default function DashboardPanel({ resumen, savedRoutines = [], previewRoutineId, setPreviewRoutine, loadRoutine, deleteRoutine }){
   const muscles = Object.keys(resumen.volumenPorMusculo || {})
   const previewRoutine = savedRoutines.find((routine) => routine.id === previewRoutineId) || savedRoutines[savedRoutines.length - 1]
-  const previewSummary = previewRoutine ? summarizeWeek(previewRoutine.plan) : null
 
   // Helper para calcular un porcentaje visual de las series (tope de 24 series como 100%)
   const calcularPorcentajeSeries = (series) => {

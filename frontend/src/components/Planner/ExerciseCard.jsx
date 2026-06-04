@@ -1,4 +1,4 @@
-import React from 'react'
+
 import '../Planner/Planner.css'
 import { calculateExerciseVolume } from '../../utils/calculations'
 
@@ -10,6 +10,20 @@ export default function ExerciseCard({ ejercicio, diaNombre, onEdit, onDelete })
     onEdit({ ...ejercicio, [field]: nextValue })
   }
 
+  const renderFieldControl = (label, fieldName, value, fallback = 0) => {
+    const val = value !== undefined ? value : fallback;
+    return (
+      <div className="field-control">
+        <span>{label}</span>
+        <div className="value-control">
+          <button className="step-btn" onClick={() => updateField(fieldName, val - 1)}>-</button>
+          <input className="small-input" value={val} onChange={(e) => updateField(fieldName, e.target.value)} />
+          <button className="step-btn" onClick={() => updateField(fieldName, val + 1)}>+</button>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="card exercise-card">
       <div className="exercise-info">
@@ -17,32 +31,10 @@ export default function ExerciseCard({ ejercicio, diaNombre, onEdit, onDelete })
         <div className="exercise-subtitle">{ejercicio.grupoMuscularPrincipal}{ejercicio.gruposSecundarios?.length ? ' · ' + ejercicio.gruposSecundarios.join(',') : ''}</div>
 
         <div className="exercise-meta">
-          <div className="field-control">
-            <span>Series</span>
-            <div className="value-control">
-              <button className="step-btn" onClick={() => updateField('series', ejercicio.series - 1)}>-</button>
-              <input className="small-input" value={ejercicio.series} onChange={(e) => updateField('series', e.target.value)} />
-              <button className="step-btn" onClick={() => updateField('series', ejercicio.series + 1)}>+</button>
-            </div>
-          </div>
-
-          <div className="field-control">
-            <span>Reps</span>
-            <div className="value-control">
-              <button className="step-btn" onClick={() => updateField('repeticiones', ejercicio.repeticiones - 1)}>-</button>
-              <input className="small-input" value={ejercicio.repeticiones} onChange={(e) => updateField('repeticiones', e.target.value)} />
-              <button className="step-btn" onClick={() => updateField('repeticiones', ejercicio.repeticiones + 1)}>+</button>
-            </div>
-          </div>
-
-          <div className="field-control">
-            <span>Peso (kg)</span>
-            <div className="value-control">
-              <button className="step-btn" onClick={() => updateField('peso', ejercicio.peso - 1)}>-</button>
-              <input className="small-input" value={ejercicio.peso} onChange={(e) => updateField('peso', e.target.value)} />
-              <button className="step-btn" onClick={() => updateField('peso', ejercicio.peso + 1)}>+</button>
-            </div>
-          </div>
+          {renderFieldControl('Series', 'series', ejercicio.series)}
+          {renderFieldControl('Reps', 'repeticiones', ejercicio.repeticiones)}
+          {renderFieldControl('Peso (kg)', 'peso', ejercicio.peso)}
+          {renderFieldControl('Min / Serie', 'tiempoPorSerie', ejercicio.tiempoPorSerie, 3)}
         </div>
 
         <div className="exercise-volume"><strong>Volumen:</strong> {vol} kg</div>

@@ -59,7 +59,7 @@ const Calendar = ({ workoutData }) => {
         {days.map(day => {
           const dateStr = formatDate(day);
           const workout = workoutData.find(w => w.date === dateStr);
-          const intensity = workout ? workout.intensity : 0;
+          const intensity = getIntensity(day);
           return (
             <div 
               key={day} 

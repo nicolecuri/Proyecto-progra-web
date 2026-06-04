@@ -1,11 +1,11 @@
-import React from 'react'
+
 import '../Planner/Planner.css'
 import ExerciseCard from './ExerciseCard'
 import SearchBar from './SearchBar'
 
 export default function DayView({ dia, planId, actions }){
   const handleAdd = (ex) => {
-    const ejercicioPlanificado = { nombre: ex.nombre, grupoMuscularPrincipal: ex.grupoMuscularPrincipal, gruposSecundarios: ex.gruposSecundarios || [], series: 3, repeticiones: 8, peso: 0, notas: '', orden: 0 }
+    const ejercicioPlanificado = { nombre: ex.nombre, grupoMuscularPrincipal: ex.grupoMuscularPrincipal, gruposSecundarios: ex.gruposSecundarios || [], series: 3, repeticiones: 8, peso: 0, tiempoPorSerie: 3, notas: '', orden: 0 }
     actions.addExercise(dia.diaNombre, ejercicioPlanificado)
   }
 
