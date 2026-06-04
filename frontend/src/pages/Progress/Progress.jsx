@@ -65,7 +65,7 @@ const Progress = () => {
             <div className="streak-icon activity-icon">⚡</div>
             <div className="streak-info">
               <h3>Entrenamientos este Mes</h3>
-              <p className="streak-value">{workouts.length}</p>
+              <p className="streak-value">{workouts.filter(w => w.date.startsWith(`${year}-${month}`)).length}</p>
             </div>
           </div>
         </section>
