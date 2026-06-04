@@ -1,4 +1,4 @@
-import React from 'react'
+
 import '../Planner/Planner.css'
 
 export default function DaySelector({ dias, selected, onSelect }){

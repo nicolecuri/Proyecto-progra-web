@@ -6,6 +6,7 @@ import Dashboard from "./pages/Dashboard/Dashboard"
 import Progress from "./pages/Progress/Progress"
 import Planner from "./pages/Planner/Planner"
 import AdminUsuarios from "./pages/AdminUsuarios/AdminUsuarios"
+import Profile from "./pages/Profile/Profile"
 import ProtectedRoute from "./components/layout/ProtectedRoute"
 import Navbar from "./components/layout/Navbar"
 import { ensureAdminUser } from "./services/userStorage"
@@ -52,6 +53,14 @@ function App() {
               element={
                 <ProtectedRoute requireAdmin>
                   <AdminUsuarios />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <Profile />
                 </ProtectedRoute>
               }
             />

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { PlannerProvider, usePlanner } from '../../contexts/PlannerContext'
 import DashboardPanel from '../../components/Planner/DashboardPanel'
 import DaySelector from '../../components/Planner/DaySelector'
