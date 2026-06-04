@@ -1,16 +1,134 @@
 .register-wrapper {
   display: flex;
+  min-height: 100vh;
+  width: 100%;
+}
+
+/* Left side - branding / hero */
+.register-hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  padding: 20px;
+  padding: 60px 40px;
+  background: linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(139, 92, 246, 0.15) 100%);
+  border-right: 1px solid var(--border-color);
+  position: relative;
+  overflow: hidden;
+}
+
+.register-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 30%, rgba(6, 182, 212, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 25% 75%, rgba(139, 92, 246, 0.25) 0%, transparent 55%);
+  pointer-events: none;
+}
+
+.register-hero-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 48px;
+  position: relative;
+}
+
+.register-hero-logo-icon {
+  width: 54px;
+  height: 54px;
+  background: linear-gradient(135deg, var(--accent-secondary), var(--accent-color));
+  border-radius: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.8rem;
+  box-shadow: 0 8px 24px rgba(6, 182, 212, 0.4);
+}
+
+.register-hero-logo h1 {
+  font-size: 2rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #f8fafc, var(--accent-color));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin: 0;
+}
+
+.register-hero-tagline {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 16px;
+  line-height: 1.4;
+  position: relative;
+}
+
+.register-hero-subtitle {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  text-align: center;
+  max-width: 320px;
+  line-height: 1.6;
+  position: relative;
+}
+
+.register-features {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 48px;
+  position: relative;
+}
+
+.register-feature {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.register-feature-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-color);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.register-feature-text {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+}
+
+.register-feature-text strong {
+  color: var(--text-primary);
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+/* Right side - form */
+.register-form-side {
+  width: 520px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 48px;
 }
 
 .register-container {
   width: 100%;
-  max-width: 480px;
-  padding: 40px;
   animation: slideUpFade 0.6s ease-out forwards;
+  padding: 40px;
 }
 
 .register-header {
@@ -18,8 +136,8 @@
   margin-bottom: 32px;
 }
 
-.register-header h1 {
-  font-size: 2rem;
+.register-header h2 {
+  font-size: 1.75rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 8px;
@@ -32,10 +150,13 @@
 
 .register-form {
   margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
 }
 
 .register-btn {
-  margin-top: 24px;
+  margin-top: 8px;
 }
 
 .register-footer {
@@ -56,8 +177,36 @@
   padding: 12px;
   border-radius: 8px;
   border: 1px solid rgba(239, 68, 68, 0.3);
-  margin-bottom: 24px;
+  margin-bottom: 20px;
   text-align: center;
   font-size: 0.9rem;
   animation: slideUpFade 0.3s ease-out;
+}
+
+@keyframes slideUpFade {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 1000px) {
+  .register-hero {
+    display: none;
+  }
+  .register-form-side {
+    width: 100%;
+    padding: 40px 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .register-container {
+    padding: 28px 20px;
+  }
 }
