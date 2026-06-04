@@ -9,11 +9,21 @@ const Navbar = () => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDarkTheme, setIsDarkTheme] = useState(true);
   
-  const userData = getCurrentUser() || {
+  const [userData, setUserData] = useState(() => getCurrentUser() || {
     nombre: 'Usuario',
     correo: 'usuario@correo.com',
     rol: 'usuario',
-  };
+  });
+
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const user = getCurrentUser();
+      if (user) setUserData(user);
+    };
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
+
   const isAdmin = userData.rol === 'admin';
   const displayName = userData.nombre || userData.name || 'Usuario'
   const displayEmail = userData.correo || userData.email || 'usuario@correo.com'
@@ -100,7 +110,7 @@ const Navbar = () => {
               <button className="dropdown-item">
                 <span className="dropdown-icon">⭐</span> Mi Plan: <strong>Pro</strong>
               </button>
-              <button className="dropdown-item">
+              <button className="dropdown-item" onClick={() => { toggleDropdown(); navigate('/profile'); }}>
                 <span className="dropdown-icon">⚙️</span> Configuración
               </button>
               <button className="dropdown-item">
