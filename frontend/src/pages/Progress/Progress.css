@@ -303,47 +303,6 @@
   .streak-value { font-size: 1.3rem; }
 }
 
-.progress-wrapper { min-height: 100vh; padding-bottom: 60px; }
-.progress-content { max-width: 1000px; margin: 0 auto; padding: 0 32px; }
-
-.workout-list { margin-top: 20px; }
-.workout-card { 
-  background: rgba(30, 41, 59, 0.4); 
-  padding: 16px 24px; 
-  margin-bottom: 12px; 
-  border-radius: 12px; 
-  display: flex; 
-  justify-content: space-between; 
-  align-items: center; 
-  border-left: 6px solid transparent; 
-}
-.workout-card.done { border-left-color: #10b981; }
-.workout-card.pending { border-left-color: #f59e0b; }
-
-.workout-info { display: flex; flex-direction: column; }
-.workout-title { font-weight: 600; font-size: 1.1rem; }
-.workout-meta { font-size: 0.85rem; color: #94a3b8; margin-top: 4px; }
-
-.workout-actions { flex-shrink: 0; margin-left: 20px; }
-
-.tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; }
-.tab-buttons button { 
-  padding: 8px 16px; border-radius: 8px; border: 1px solid #475569; 
-  background: transparent; color: white; cursor: pointer; 
-}
-.tab-buttons button.active { background: #e11d48; border-color: #e11d48; }
-
-button.btn-primary { 
-  background: #e11d48; color: white; border: none; 
-  padding: 8px 16px; border-radius: 6px; cursor: pointer; font-weight: 500;
-  white-space: nowrap;
-}
-button.btn-secondary { 
-  background: transparent; color: #94a3b8; border: 1px solid #475569; 
-  padding: 8px 16px; border-radius: 6px; cursor: pointer;
-}
-
-
 .workouts-section { margin-top: 30px; }
 
 .section-header-flex { 

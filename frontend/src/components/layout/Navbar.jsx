@@ -32,6 +32,16 @@ const Navbar = () => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
+  /* Actualizar userData cuando la ruta cambia (ej: después del login) */
+  useEffect(() => {
+    if (location.pathname !== '/' && location.pathname !== '/register') {
+      const currentUser = getCurrentUser();
+      if (currentUser) {
+        setUserData(currentUser);
+      }
+    }
+  }, [location.pathname]);
+
   /* Cerrar dropdown al hacer click fuera */
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -60,6 +70,7 @@ const Navbar = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('user');
+    setUserData({ nombre: 'Usuario', correo: 'usuario@correo.com', rol: 'usuario' });
     navigate('/');
   };
 

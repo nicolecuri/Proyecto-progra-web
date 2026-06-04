@@ -28,6 +28,11 @@ const Login = () => {
       return;
     }
 
+    if (usuario.blocked) {
+      setError('Su cuenta se encuentra bloqueada.');
+      return;
+    }
+
     if (usuario.rol === 'admin') {
       navigate('/admin');
       return;

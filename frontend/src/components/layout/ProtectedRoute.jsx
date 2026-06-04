@@ -8,6 +8,11 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     return <Navigate to="/" replace />
   }
 
+  if (user.bloqueado) {
+    localStorage.removeItem('user')
+    return <Navigate to="/" replace />
+  }
+
   if (requireAdmin && user.rol !== 'admin') {
     return <Navigate to="/dashboard" replace />
   }

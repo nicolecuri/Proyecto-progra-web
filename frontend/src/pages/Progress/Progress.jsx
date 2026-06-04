@@ -6,6 +6,11 @@ import './Progress.css';
 const BASE_KEY = 'fitplanner-v1';
 const ACTIVE_ROUTINE_KEY = 'fitplanner-active-routine';
 const dayNames = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+const DAYS_ES = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const MONTH_ES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+];
 
 const getStorageKey = () => {
   const user = getCurrentUser();
@@ -15,10 +20,59 @@ const getStorageKey = () => {
 
 const getProgressStorageKey = () => `${getStorageKey()}:progress`;
 
+const formatDate = (date) => date.toISOString().split('T')[0];
+
+const calculateStreak = (historyArray) => {
+  const dateSet = new Set(historyArray.map((w) => w.date));
+  let streak = 0;
+  const now = new Date();
+  for (let i = 0; i < 365; i += 1) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = formatDate(d);
+    if (dateSet.has(dateStr)) {
+      streak += 1;
+    } else if (i === 0) {
+      continue;
+    } else {
+      break;
+    }
+  }
+  return streak;
+};
+
+const calculateMaxStreak = (historyArray) => {
+  const dateSet = new Set(historyArray.map((w) => w.date));
+  const dates = Array.from(dateSet).sort();
+  let maxStreak = 0;
+  let currentStreak = 0;
+  let previousDate = null;
+
+  dates.forEach((dateStr) => {
+    const date = new Date(dateStr);
+    if (previousDate) {
+      const diff = (date - previousDate) / (1000 * 60 * 60 * 24);
+      if (diff === 1) {
+        currentStreak += 1;
+      } else {
+        currentStreak = 1;
+      }
+    } else {
+      currentStreak = 1;
+    }
+    previousDate = date;
+    maxStreak = Math.max(maxStreak, currentStreak);
+  });
+
+  return maxStreak;
+};
+
 const Progress = () => {
-  const today = new Date();
+  const today = useMemo(() => new Date(), []);
+  const year = today.getFullYear();
+  const monthIdx = today.getMonth();
   const todayName = dayNames[today.getDay()];
-  const todayKey = `fitplanner-tracking-${today.toISOString().split('T')[0]}`;
+  const todayKey = `fitplanner-tracking-${formatDate(today)}`;
 
   const [rutinas] = useState(() => {
     try {
@@ -89,12 +143,29 @@ const Progress = () => {
         const fecha = comentario.fecha.slice(0, 10);
         const dia = diasRutina.find((d) => d.diaNombre === diaNombre);
         const muscles = dia?.ejercicios?.map((ej) => ej.grupoMuscularPrincipal).filter(Boolean).join(', ') || 'Entrenamiento';
-        const time = comentario.tiempo || (dia?.ejercicios?.length ? `${dia.ejercicios.reduce((sum, ej) => sum + (Number(ej.tiempoPorSerie) || 0), 0)} min` : 'N/A');
+        
+        // Calcular tiempo real basado en ejercicios completados
+        let totalMinutes = 0;
+        if (dia?.ejercicios && progress.completedExercises) {
+          dia.ejercicios.forEach((ej) => {
+            if (progress.completedExercises[ej.id]) {
+              const minPerExercise = (Number(ej.series) || 1) * (Number(ej.tiempoPorSerie) || 3);
+              totalMinutes += minPerExercise;
+            }
+          });
+        }
+        
+        const time = totalMinutes > 0 ? `${totalMinutes} min` : comentario.tiempo || 'N/A';
+        const timeMinutes = totalMinutes > 0 ? totalMinutes : parseMinutes(comentario.tiempo || '0');
+        const calories = timeMinutes * 5; // 5 kcal por minuto
+        
         return {
           date: fecha,
           intensity: Number(comentario.intensidad) || 0,
           muscles,
           time,
+          timeMinutes,
+          calories,
           rutinaId: routineId,
           dia: diaNombre,
           completed: comentario.completed,
@@ -103,6 +174,65 @@ const Progress = () => {
       }).filter(Boolean);
     }).sort((a, b) => a.date.localeCompare(b.date));
   }, [progressByRoutine, rutinas]);
+
+  const workouts = calendarEntries;
+
+  const currentStreak = useMemo(() => calculateStreak(workouts), [workouts]);
+  const maxStreak = useMemo(() => calculateMaxStreak(workouts), [workouts]);
+  const month = String(monthIdx + 1).padStart(2, '0');
+
+  const thisMonthWorkouts = useMemo(
+    () => workouts.filter((w) => w.date.startsWith(`${year}-${month}`)),
+    [workouts, year, month]
+  );
+
+  const parseMinutes = (value) => {
+    const mins = parseInt((value || '0').replace(/\D/g, ''), 10);
+    return Number.isNaN(mins) ? 0 : mins;
+  };
+
+  const totalMinutesThisMonth = useMemo(
+    () => thisMonthWorkouts.reduce((acc, w) => acc + (w.timeMinutes || parseMinutes(w.time)), 0),
+    [thisMonthWorkouts]
+  );
+
+  const totalCaloriesThisMonth = totalMinutesThisMonth * 5;
+
+  const last7Days = useMemo(() => {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - (6 - i));
+      const dateStr = formatDate(d);
+      const wo = workouts.find((w) => w.date === dateStr);
+      const mins = wo ? (wo.timeMinutes || parseMinutes(wo.time)) : 0;
+      return {
+        label: DAYS_ES[d.getDay()],
+        date: dateStr,
+        mins,
+        intensity: wo ? wo.intensity : 0,
+        isToday: dateStr === formatDate(today),
+      };
+    });
+  }, [workouts, today]);
+
+  const maxMins = Math.max(...last7Days.map((d) => d.mins), 30);
+
+  const muscleFrequency = useMemo(() => {
+    const freq = {};
+    workouts.forEach((w) => {
+      if (!w.muscles || w.muscles === 'Ninguno') return;
+      const groups = w.muscles.split(',').map((s) => s.trim()).filter(Boolean);
+      groups.forEach((g) => {
+        freq[g] = (freq[g] || 0) + 1;
+      });
+    });
+    const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 5);
+    const maxFreq = sorted[0]?.[1] || 1;
+    return sorted.map(([name, count]) => ({ name, count, pct: Math.round((count / maxFreq) * 100) }));
+  }, [workouts]);
+
+  const activeDaysThisMonth = thisMonthWorkouts.length;
+  const daysInMonth = new Date(year, monthIdx + 1, 0).getDate();
 
   const isExerciseCompleted = (exerciseId) => Boolean(selectedProgress.completedExercises?.[exerciseId]);
 
@@ -210,8 +340,96 @@ const Progress = () => {
           </p>
         </section>
 
+        <section className="streak-container">
+          <div className="streak-card glass-panel highlight">
+            <div className="streak-icon fire-icon">🔥</div>
+            <div className="streak-info">
+              <h3>Racha Actual</h3>
+              <p className="streak-value">{currentStreak} <span className="streak-unit">días</span></p>
+            </div>
+          </div>
+          <div className="streak-card glass-panel">
+            <div className="streak-icon trophy-icon">🏆</div>
+            <div className="streak-info">
+              <h3>Mejor Racha</h3>
+              <p className="streak-value">{maxStreak} <span className="streak-unit">días</span></p>
+            </div>
+          </div>
+          <div className="streak-card glass-panel">
+            <div className="streak-icon activity-icon">⚡</div>
+            <div className="streak-info">
+              <h3>Sesiones este Mes</h3>
+              <p className="streak-value">{activeDaysThisMonth} <span className="streak-unit">/ {daysInMonth} días</span></p>
+            </div>
+          </div>
+          <div className="streak-card glass-panel">
+            <div className="streak-icon time-icon">⏱️</div>
+            <div className="streak-info">
+              <h3>Tiempo Activo</h3>
+              <p className="streak-value">{totalMinutesThisMonth} <span className="streak-unit">min</span></p>
+            </div>
+          </div>
+          <div className="streak-card glass-panel">
+            <div className="streak-icon cal-icon">🔥</div>
+            <div className="streak-info">
+              <h3>Calorías Est.</h3>
+              <p className="streak-value">{totalCaloriesThisMonth} <span className="streak-unit">kcal</span></p>
+            </div>
+          </div>
+        </section>
+
+        <section className="chart-section glass-panel">
+          <div className="chart-header">
+            <h2>Actividad — Últimos 7 días</h2>
+            <span className="chart-subtitle">Minutos de entrenamiento por día</span>
+          </div>
+          <div className="bar-chart">
+            {last7Days.map((day) => (
+              <div key={day.date} className={`bar-col${day.isToday ? ' bar-today' : ''}`}>
+                <div className="bar-label-top">
+                  {day.mins > 0 && <span className="bar-value-top">{day.mins}m</span>}
+                </div>
+                <div className="bar-track">
+                  <div
+                    className={`bar-fill intensity-bar-${day.intensity}`}
+                    style={{ height: `${day.mins === 0 ? 4 : Math.max(8, (day.mins / maxMins) * 100)}%` }}
+                  />
+                </div>
+                <span className={`bar-day-label${day.isToday ? ' today-label' : ''}`}>
+                  {day.label}
+                </span>
+                {day.isToday && <span className="today-dot">●</span>}
+              </div>
+            ))}
+          </div>
+          {workouts.length === 0 && (
+            <div className="chart-empty">
+              <p>Aún no tienes entrenamientos registrados.</p>
+              <p>Completa ejercicios en el Dashboard para ver tu progreso aquí.</p>
+            </div>
+          )}
+        </section>
+
+        {muscleFrequency.length > 0 && (
+          <section className="muscles-section glass-panel">
+            <h2>Grupos Musculares más Trabajados</h2>
+            <p className="section-subtitle">Basado en todos tus entrenamientos registrados</p>
+            <div className="muscle-bars">
+              {muscleFrequency.map(({ name, count, pct }) => (
+                <div key={name} className="muscle-row">
+                  <span className="muscle-name">{name}</span>
+                  <div className="muscle-bar-track">
+                    <div className="muscle-bar-fill" style={{ width: `${pct}%` }} />
+                  </div>
+                  <span className="muscle-count">{count}x</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
         <section className="calendar-section">
-          <h2>Calendario de Intensidad</h2>
+          <h2>Calendario de Intensidad — {MONTH_ES[monthIdx]} {year}</h2>
           <Calendar workoutData={calendarEntries} />
         </section>
 

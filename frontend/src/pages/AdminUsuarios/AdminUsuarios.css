@@ -129,9 +129,44 @@
   color: var(--text-secondary);
 }
 
+.admin-user-table td:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
 .admin-user-table button {
-  margin-right: 0.5rem;
+  margin: 0;
+  padding: 0.55rem 0.9rem;
+  white-space: nowrap;
+  border-radius: 0.9rem;
+  font-size: 0.85rem;
+  min-width: fit-content;
+}
+
+.admin-user-table button.btn-danger {
+  background: var(--error-color);
+  color: white;
+}
+
+.inline-edit-input,
+.inline-edit-select {
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  border-radius: 0.85rem;
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.btn-primary {
+  border: none;
+  border-radius: 0.95rem;
   padding: 0.65rem 0.95rem;
+  background: var(--accent-color);
+  color: white;
+  cursor: pointer;
 }
 
 .modal-overlay {

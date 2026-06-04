@@ -29,6 +29,16 @@ const UserDetailModal = ({ user, workoutCounts, onClose }) => {
             <strong>{user.rol}</strong>
           </div>
           <div className="modal-row">
+            <span>Estado</span>
+            <strong>{user.bloqueado ? 'Bloqueado' : 'Activo'}</strong>
+          </div>
+          {user.bloqueado && (
+            <div className="modal-row">
+              <span>Fecha de bloqueo</span>
+              <strong>{user.fechaBloqueo ? new Date(user.fechaBloqueo).toLocaleString('es-ES') : '-'}</strong>
+            </div>
+          )}
+          <div className="modal-row">
             <span>Fecha de registro</span>
             <strong>{user.fechaRegistro ? new Date(user.fechaRegistro).toLocaleString('es-ES') : '-'}</strong>
           </div>
