@@ -3,6 +3,13 @@ import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { getCurrentUser } from '../../services/userStorage';
 
+const getGreeting = () => {
+  const h = new Date().getHours();
+  if (h >= 5 && h < 12) return '¡Buenos días';
+  if (h >= 12 && h < 19) return '¡Buenas tardes';
+  return '¡Buenas noches';
+};
+
 const getMuscleEmoji = (muscleGroup) => {
   const group = muscleGroup?.toLowerCase() || '';
   if (group.includes('piernas') || group.includes('gemelos') || group.includes('glúteos')) return '🦵';
@@ -13,6 +20,7 @@ const getMuscleEmoji = (muscleGroup) => {
 };
 
 const Dashboard = () => {
+  const [currentUser] = useState(() => getCurrentUser());
   const [routines, setRoutines] = useState([]);
   const [activeRoutineId, setActiveRoutineId] = useState('');
   const [tracking, setTracking] = useState(() => {
@@ -280,8 +288,8 @@ const Dashboard = () => {
       <main className="dashboard-content">
         <section className="welcome-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
           <div>
-            <h1>Resumen de tu progreso</h1>
-            <p>¡Buen trabajo esta semana! Mantén el ritmo.</p>
+            <h1>{getGreeting()}, {currentUser?.nombre || currentUser?.name || 'Atleta'}! 👋</h1>
+            <p>¡Buen trabajo esta semana! Mantén el ritmo y sigue avanzando.</p>
           </div>
           <div style={{ background: 'var(--panel-soft)', padding: '12px 18px', borderRadius: '12px', border: '1px solid var(--border-color)', minWidth: '250px' }}>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Rutina Activa:</label>

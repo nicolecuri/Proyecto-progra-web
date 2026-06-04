@@ -8,67 +8,116 @@ const Login = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
-    ensureAdminUser()
-    const usuario = loginUsuario(email, password)
+    setLoading(true);
+    setError('');
+
+    // Pequeña demora visual para que el botón muestre "Cargando..."
+    await new Promise(r => setTimeout(r, 400));
+
+    ensureAdminUser();
+    const usuario = loginUsuario(email, password);
+
+    setLoading(false);
 
     if (!usuario) {
-      setError('Correo o contraseña incorrectos.')
-      return
+      setError('Correo o contraseña incorrectos.');
+      return;
     }
 
     if (usuario.rol === 'admin') {
-      navigate('/admin')
-      return
+      navigate('/admin');
+      return;
     }
 
-    navigate('/dashboard')
+    navigate('/dashboard');
   };
 
   return (
     <div className="login-wrapper">
-      <div className="login-container glass-panel">
-        <div className="login-header">
-          <h1>Bienvenido de vuelta</h1>
-          <p>Ingresa a tu cuenta para continuar tu entrenamiento</p>
+      {/* Hero / Branding */}
+      <div className="login-hero">
+        <div className="hero-logo">
+          <div className="hero-logo-icon">🏋️</div>
+          <h1>FitTrack</h1>
         </div>
 
-        {error && <div className="error-message">{error}</div>}
+        <p className="hero-tagline">
+          Tu entrenamiento.<br />Tu progreso.<br />Tu éxito.
+        </p>
+        <p className="hero-subtitle">
+          Registra rutinas, controla tu avance y alcanza tus metas con una plataforma diseñada para ti.
+        </p>
 
-        <form className="login-form" onSubmit={handleLogin}>
-          <div className="input-group">
-            <label htmlFor="email">Correo Electrónico</label>
-            <input 
-              type="email" 
-              id="email" 
-              placeholder="tu@correo.com" 
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required 
-            />
+        <div className="hero-stats">
+          <div className="hero-stat">
+            <span className="hero-stat-value">100%</span>
+            <span className="hero-stat-label">Personal</span>
+          </div>
+          <div className="hero-stat">
+            <span className="hero-stat-value">∞</span>
+            <span className="hero-stat-label">Rutinas</span>
+          </div>
+          <div className="hero-stat">
+            <span className="hero-stat-value">24/7</span>
+            <span className="hero-stat-label">Disponible</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Formulario */}
+      <div className="login-form-side">
+        <div className="login-container glass-panel">
+          <div className="login-header">
+            <h2>Bienvenido de vuelta</h2>
+            <p>Ingresa a tu cuenta para continuar</p>
           </div>
 
-          <div className="input-group">
-            <label htmlFor="password">Contraseña</label>
-            <input 
-              type="password" 
-              id="password" 
-              placeholder="••••••••" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required 
-            />
+          {error && <div className="error-message">{error}</div>}
+
+          <form className="login-form" onSubmit={handleLogin}>
+            <div className="input-group">
+              <label htmlFor="email">Correo Electrónico</label>
+              <input
+                type="email"
+                id="email"
+                placeholder="tu@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div className="input-group">
+              <label htmlFor="password">Contraseña</label>
+              <input
+                type="password"
+                id="password"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                autoComplete="current-password"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary login-btn"
+              disabled={loading}
+              style={{ opacity: loading ? 0.75 : 1 }}
+            >
+              {loading ? '⏳ Verificando...' : '🚀 Iniciar Sesión'}
+            </button>
+          </form>
+
+          <div className="login-footer">
+            <p>¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link></p>
           </div>
-
-          <button type="submit" className="btn-primary login-btn">
-            Iniciar Sesión
-          </button>
-        </form>
-
-        <div className="login-footer">
-          <p>¿No tienes una cuenta? <Link to="/register">Regístrate aquí</Link></p>
         </div>
       </div>
     </div>

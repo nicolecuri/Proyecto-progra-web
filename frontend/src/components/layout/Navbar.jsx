@@ -1,20 +1,28 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getCurrentUser } from '../../services/userStorage';
 import './Navbar.css';
 
-const Navbar = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [isDarkTheme, setIsDarkTheme] = useState(true);
-  
-  const [userData, setUserData] = useState(() => getCurrentUser() || {
-    nombre: 'Usuario',
-    correo: 'usuario@correo.com',
-    rol: 'usuario',
-  });
+const NAV_LINKS = [
+  { to: '/dashboard', label: 'Dashboard',  icon: '🏠' },
+  { to: '/progress',  label: 'Progreso',   icon: '📈' },
+  { to: '/planner',   label: 'Planificar', icon: '📋' },
+];
 
+const Navbar = () => {
+  const location  = useLocation();
+  const navigate  = useNavigate();
+  const dropdownRef = useRef(null);
+
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileOpen,   setIsMobileOpen]   = useState(false);
+  const [isDarkTheme,    setIsDarkTheme]    = useState(true);
+
+  const [userData, setUserData] = useState(
+    () => getCurrentUser() || { nombre: 'Usuario', correo: 'usuario@correo.com', rol: 'usuario' }
+  );
+
+  /* Escuchar cambios de perfil */
   useEffect(() => {
     const handleProfileUpdate = () => {
       const user = getCurrentUser();
@@ -24,62 +32,59 @@ const Navbar = () => {
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
-  const isAdmin = userData.rol === 'admin';
-  const displayName = userData.nombre || userData.name || 'Usuario'
-  const displayEmail = userData.correo || userData.email || 'usuario@correo.com'
-
+  /* Cerrar dropdown al hacer click fuera */
   useEffect(() => {
-    if (isDarkTheme) {
-      document.body.classList.remove('light-theme');
-    } else {
-      document.body.classList.add('light-theme');
-    }
+    const handleClickOutside = (e) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  /* Cerrar mobile menu en cambio de ruta */
+  useEffect(() => {
+    setIsMobileOpen(false);
+    setIsDropdownOpen(false);
+  }, [location.pathname]);
+
+  /* Tema */
+  useEffect(() => {
+    document.body.classList.toggle('light-theme', !isDarkTheme);
   }, [isDarkTheme]);
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
-
-  const toggleTheme = () => {
-    setIsDarkTheme(!isDarkTheme);
-  };
+  const isAdmin      = userData.rol === 'admin';
+  const displayName  = userData.nombre  || userData.name  || 'Usuario';
+  const displayEmail = userData.correo  || userData.email || '';
 
   const handleLogout = () => {
     localStorage.removeItem('user');
     navigate('/');
   };
 
-  // No renderizar Navbar en Login o Registro
-  if (location.pathname === '/' || location.pathname === '/register') {
-    return null;
-  }
+  /* No renderizar en login/registro */
+  if (location.pathname === '/' || location.pathname === '/register') return null;
 
   return (
     <header className="navbar-container glass-panel">
+      {/* Brand */}
       <div className="navbar-brand">
-        <div className="brand-icon"></div>
+        <div className="brand-icon">🏋️</div>
         <h2>FitTrack</h2>
       </div>
 
+      {/* Desktop nav */}
       <nav className="navbar-links">
-        <Link 
-          to="/dashboard" 
-          className={location.pathname === '/dashboard' ? 'active' : ''}
-        >
-          Dashboard
-        </Link>
-        <Link 
-          to="/progress" 
-          className={location.pathname === '/progress' ? 'active' : ''}
-        >
-          Progreso
-        </Link>
-         <Link
-          to="/planner"
-          className={location.pathname === '/planner' ? 'active' : ''}
-        >
-          Planificar de rutina
-        </Link>
+        {NAV_LINKS.map(({ to, label }) => (
+          <Link
+            key={to}
+            to={to}
+            className={location.pathname === to ? 'active' : ''}
+          >
+            {label}
+          </Link>
+        ))}
         {isAdmin && (
           <Link
             to="/admin"
@@ -90,49 +95,110 @@ const Navbar = () => {
         )}
       </nav>
 
+      {/* Actions */}
       <div className="navbar-actions">
-        <div className="user-profile-container">
-          <div className="avatar" onClick={toggleDropdown}>
-            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" />
-          </div>
-          
+        {/* Theme toggle */}
+        <button
+          className="theme-toggle"
+          onClick={() => setIsDarkTheme(p => !p)}
+          title={isDarkTheme ? 'Modo claro' : 'Modo oscuro'}
+          aria-label="Cambiar tema"
+        >
+          {isDarkTheme ? '☀️' : '🌙'}
+        </button>
+
+        {/* User avatar + dropdown */}
+        <div className="user-profile-container" ref={dropdownRef}>
+          <button className="avatar" onClick={() => setIsDropdownOpen(p => !p)} aria-label="Menú de usuario">
+            <img
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=8b5cf6&color=fff&bold=true`}
+              alt={displayName}
+            />
+          </button>
+
           {isDropdownOpen && (
             <div className="profile-dropdown glass-panel">
               <div className="dropdown-header">
-                <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=14b8a6&color=fff`} alt="User" className="dropdown-avatar" />
+                <img
+                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=8b5cf6&color=fff&bold=true`}
+                  alt={displayName}
+                  className="dropdown-avatar"
+                />
                 <div>
                   <h4>{displayName}</h4>
                   <span>{displayEmail}</span>
                 </div>
               </div>
-              <div className="dropdown-divider"></div>
-              
-              <button className="dropdown-item">
-                <span className="dropdown-icon">⭐</span> Mi Plan: <strong>Pro</strong>
+              <div className="dropdown-divider" />
+
+              <button className="dropdown-item" onClick={() => { setIsDropdownOpen(false); navigate('/profile'); }}>
+                <span className="dropdown-icon">👤</span> Mi Perfil
               </button>
-              <button className="dropdown-item" onClick={() => { toggleDropdown(); navigate('/profile'); }}>
-                <span className="dropdown-icon">⚙️</span> Configuración
+              <button className="dropdown-item" onClick={() => { setIsDropdownOpen(false); navigate('/progress'); }}>
+                <span className="dropdown-icon">📊</span> Mi Progreso
               </button>
-              <button className="dropdown-item">
-                <span className="dropdown-icon">🔗</span> Enlaces Rápidos
-              </button>
-              
-              <div className="dropdown-divider"></div>
-              
-              <button className="dropdown-item" onClick={toggleTheme}>
-                <span className="dropdown-icon">{isDarkTheme ? '☀️' : '🌙'}</span> 
+
+              <div className="dropdown-divider" />
+
+              <button className="dropdown-item" onClick={() => setIsDarkTheme(p => !p)}>
+                <span className="dropdown-icon">{isDarkTheme ? '☀️' : '🌙'}</span>
                 Modo {isDarkTheme ? 'Claro' : 'Oscuro'}
               </button>
-              
-              <div className="dropdown-divider"></div>
-              
+
+              <div className="dropdown-divider" />
+
               <button className="dropdown-item text-error" onClick={handleLogout}>
                 <span className="dropdown-icon">🚪</span> Cerrar Sesión
               </button>
             </div>
           )}
         </div>
+
+        {/* Hamburger button (mobile) */}
+        <button
+          className={`hamburger${isMobileOpen ? ' open' : ''}`}
+          onClick={() => setIsMobileOpen(p => !p)}
+          aria-label="Menú móvil"
+        >
+          <span />
+          <span />
+          <span />
+        </button>
       </div>
+
+      {/* Mobile drawer */}
+      {isMobileOpen && (
+        <nav className="mobile-menu glass-panel">
+          {NAV_LINKS.map(({ to, label, icon }) => (
+            <Link
+              key={to}
+              to={to}
+              className={`mobile-link${location.pathname === to ? ' active' : ''}`}
+            >
+              <span className="mobile-link-icon">{icon}</span>
+              {label}
+            </Link>
+          ))}
+          {isAdmin && (
+            <Link
+              to="/admin"
+              className={`mobile-link${location.pathname === '/admin' ? ' active' : ''}`}
+            >
+              <span className="mobile-link-icon">🛡️</span>
+              Admin
+            </Link>
+          )}
+          <div className="mobile-divider" />
+          <Link to="/profile" className="mobile-link">
+            <span className="mobile-link-icon">👤</span>
+            Mi Perfil
+          </Link>
+          <button className="mobile-link text-error" onClick={handleLogout}>
+            <span className="mobile-link-icon">🚪</span>
+            Cerrar Sesión
+          </button>
+        </nav>
+      )}
     </header>
   );
 };
