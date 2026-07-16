@@ -37,7 +37,7 @@ const Navbar = () => {
     if (location.pathname !== '/' && location.pathname !== '/register') {
       const currentUser = getCurrentUser();
       if (currentUser) {
-        setUserData(currentUser);
+        queueMicrotask(() => setUserData(currentUser));
       }
     }
   }, [location.pathname]);
@@ -55,8 +55,10 @@ const Navbar = () => {
 
   /* Cerrar mobile menu en cambio de ruta */
   useEffect(() => {
-    setIsMobileOpen(false);
-    setIsDropdownOpen(false);
+    queueMicrotask(() => {
+      setIsMobileOpen(false);
+      setIsDropdownOpen(false);
+    });
   }, [location.pathname]);
 
   /* Tema */
