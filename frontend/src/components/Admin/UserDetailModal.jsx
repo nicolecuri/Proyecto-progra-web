@@ -1,4 +1,4 @@
-const UserDetailModal = ({ user, workoutCounts, onClose }) => {
+const UserDetailModal = ({ user, onClose }) => {
   if (!user) return null
 
   return (
@@ -41,18 +41,6 @@ const UserDetailModal = ({ user, workoutCounts, onClose }) => {
           <div className="modal-row">
             <span>Fecha de registro</span>
             <strong>{user.fechaRegistro ? new Date(user.fechaRegistro).toLocaleString('es-ES') : '-'}</strong>
-          </div>
-          <div className="modal-row">
-            <span>Entrenamientos registrados</span>
-            <strong>{workoutCounts.registrados}</strong>
-          </div>
-          <div className="modal-row">
-            <span>Entrenamientos completados</span>
-            <strong>{workoutCounts.completados}</strong>
-          </div>
-          <div className="modal-row">
-            <span>Entrenamientos pendientes</span>
-            <strong>{workoutCounts.pendientes}</strong>
           </div>
         </div>
       </div>

@@ -1,19 +1,42 @@
 import { useState, useEffect, useRef } from 'react'
 import '../Planner/Planner.css'
-import { FLATTENED_EXERCISES, EXERCISE_DB } from '../../services/exerciseDB'
+import { fetchExercises } from '../../services/api'
 
 export default function SearchBar({ onSelect }){
   const [q, setQ] = useState('')
   const [group, setGroup] = useState('Todos')
   const [isFocused, setIsFocused] = useState(false)
+  const [exercises, setExercises] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const wrapperRef = useRef(null)
-  const groups = ['Todos', ...Object.keys(EXERCISE_DB)]
 
-  const suggestions = FLATTENED_EXERCISES.filter((e) => {
-    const matchesText = q.length === 0 || e.nombre.toLowerCase().includes(q.toLowerCase())
-    const matchesGroup = group === 'Todos' || e.grupoMuscularPrincipal === group
-    return matchesText && matchesGroup
-  }).slice(0, 12)
+  useEffect(() => {
+    let mounted = true
+    const loadExercises = async () => {
+      try {
+        const items = await fetchExercises()
+        if (mounted) setExercises(items)
+      } catch (err) {
+        if (mounted) setError(err.message || 'No se pudieron cargar los ejercicios')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+
+    loadExercises()
+    return () => { mounted = false }
+  }, [])
+
+  const groups = ['Todos', ...Array.from(new Set(exercises.map((e) => e.grupoMuscularPrincipal))).sort()]
+
+  const suggestions = exercises
+    .filter((e) => {
+      const matchesText = q.length === 0 || e.nombre.toLowerCase().includes(q.toLowerCase())
+      const matchesGroup = group === 'Todos' || e.grupoMuscularPrincipal === group
+      return matchesText && matchesGroup
+    })
+    .slice(0, 12)
 
   useEffect(() => {
     const handleClickOutside = (event) => {

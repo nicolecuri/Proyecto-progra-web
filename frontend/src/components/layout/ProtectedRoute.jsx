@@ -1,5 +1,5 @@
 import { Navigate } from 'react-router-dom'
-import { getCurrentUser } from '../../services/userStorage'
+import { clearCurrentUser, getCurrentUser } from '../../services/userStorage'
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const user = getCurrentUser()
@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   if (user.bloqueado) {
-    localStorage.removeItem('user')
+    clearCurrentUser()
     return <Navigate to="/" replace />
   }
 

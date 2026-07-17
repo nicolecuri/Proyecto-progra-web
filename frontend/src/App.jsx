@@ -9,9 +9,8 @@ import AdminUsuarios from "./pages/AdminUsuarios/AdminUsuarios"
 import Profile from "./pages/Profile/Profile"
 import ProtectedRoute from "./components/layout/ProtectedRoute"
 import Navbar from "./components/layout/Navbar"
-import { ensureAdminUser, limpiarDatosInnecesarios } from "./services/userStorage"
+import { limpiarDatosInnecesarios } from "./services/userStorage"
 
-ensureAdminUser()
 limpiarDatosInnecesarios()
 
 import "./App.css"

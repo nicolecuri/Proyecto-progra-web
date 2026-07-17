@@ -1,15 +1,42 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001'
 
+async function handleResponse(response, fallbackMessage) {
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}))
+    throw new Error(errorData.error || fallbackMessage)
+  }
+  return response.json()
+}
+
 export async function fetchExercises() {
   const response = await fetch(`${API_BASE_URL}/api/exercises`)
-  if (!response.ok) throw new Error('No se pudieron cargar los ejercicios')
-  return response.json()
+  return handleResponse(response, 'No se pudieron cargar los ejercicios')
 }
 
 export async function fetchRoutines() {
   const response = await fetch(`${API_BASE_URL}/api/routines`)
-  if (!response.ok) throw new Error('No se pudieron cargar las rutinas')
-  return response.json()
+  return handleResponse(response, 'No se pudieron cargar las rutinas')
+}
+
+export async function fetchUsers() {
+  const response = await fetch(`${API_BASE_URL}/api/users`)
+  return handleResponse(response, 'No se pudieron cargar los usuarios')
+}
+
+export async function updateUserToApi(id, payload) {
+  const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+  return handleResponse(response, 'No se pudo actualizar el usuario')
+}
+
+export async function deleteUserFromApi(id) {
+  const response = await fetch(`${API_BASE_URL}/api/users/${id}`, {
+    method: 'DELETE',
+  })
+  return handleResponse(response, 'No se pudo eliminar el usuario')
 }
 
 export async function loginUserToApi(correo, password) {
@@ -19,12 +46,7 @@ export async function loginUserToApi(correo, password) {
     body: JSON.stringify({ correo, password }),
   })
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error || 'No se pudo iniciar sesión')
-  }
-
-  return response.json()
+  return handleResponse(response, 'No se pudo iniciar sesión')
 }
 
 export async function registerUserToApi(nombre, correo, password) {
@@ -34,12 +56,7 @@ export async function registerUserToApi(nombre, correo, password) {
     body: JSON.stringify({ nombre, correo, password }),
   })
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}))
-    throw new Error(errorData.error || 'No se pudo registrar el usuario')
-  }
-
-  return response.json()
+  return handleResponse(response, 'No se pudo registrar el usuario')
 }
 
 export async function saveRoutineToApi(routine) {
@@ -48,6 +65,24 @@ export async function saveRoutineToApi(routine) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(routine),
   })
-  if (!response.ok) throw new Error('No se pudo guardar la rutina')
-  return response.json()
+  return handleResponse(response, 'No se pudo guardar la rutina')
+}
+
+export async function fetchTracking(userId, date) {
+  const response = await fetch(`${API_BASE_URL}/api/tracking/${userId}/${date}`)
+  return handleResponse(response, 'No se pudo obtener el tracking')
+}
+
+export async function saveTracking(userId, date, data) {
+  const response = await fetch(`${API_BASE_URL}/api/tracking`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, date, data }),
+  })
+  return handleResponse(response, 'No se pudo guardar el tracking')
+}
+
+export async function listTracking(userId) {
+  const response = await fetch(`${API_BASE_URL}/api/tracking/${userId}`)
+  return handleResponse(response, 'No se pudo listar el tracking')
 }

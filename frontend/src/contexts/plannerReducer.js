@@ -1,6 +1,6 @@
 const genId = () => Math.random().toString(36).slice(2,9)
 
-const normalizePlan = (plan) => ({
+export const normalizePlan = (plan) => ({
   ...plan,
   dias: plan.dias.map((dia) => ({
     ...dia,
@@ -105,6 +105,23 @@ export function plannerReducer(state, action) {
           ...state.plan,
           dias: state.plan.dias.map((d) => (d.diaNombre === diaNombre ? { ...d, isDescanso: !d.isDescanso } : d)),
         },
+      }
+    }
+
+    case 'SET_SAVED_ROUTINES': {
+      return {
+        ...state,
+        savedRoutines: Array.isArray(action.payload) ? action.payload : [],
+      }
+    }
+
+    case 'ADD_API_ROUTINE': {
+      return {
+        ...state,
+        savedRoutines: [...state.savedRoutines, action.payload],
+        previewRoutineId: action.payload.id,
+        editingRoutineId: null,
+        plan: initialPlan(),
       }
     }
 

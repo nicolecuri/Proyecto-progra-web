@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { registrarUsuario, ensureAdminUser } from '../../services/userStorage';
+import { registerUserToApi } from '../../services/api';
+import { setCurrentUser } from '../../services/userStorage';
 import './Register.css';
 
 const Register = () => {
@@ -36,23 +37,21 @@ const Register = () => {
     }
 
     setLoading(true);
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 400));
 
-    ensureAdminUser();
-    const nuevoUsuario = registrarUsuario({
-      nombre: formData.nombre,
-      correo: formData.correo,
-      password: formData.password,
-    });
-
-    setLoading(false);
-
-    if (!nuevoUsuario) {
-      setError('Ya existe una cuenta con este correo.');
-      return;
+    try {
+      const nuevoUsuario = await registerUserToApi(
+        formData.nombre,
+        formData.correo,
+        formData.password
+      );
+      setCurrentUser(nuevoUsuario);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Ya existe una cuenta con este correo.');
+    } finally {
+      setLoading(false);
     }
-
-    navigate('/dashboard');
   };
 
   return (

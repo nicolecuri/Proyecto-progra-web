@@ -1,24 +1,39 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
-  obtenerUsuarios,
-  eliminarUsuario,
-  obtenerEstadisticasUsuarios,
-  obtenerConteoEntrenamientos,
-  actualizarPerfil,
-  actualizarBloqueoUsuario,
-} from '../../services/userStorage'
+  deleteUserFromApi,
+  fetchUsers,
+  updateUserToApi,
+} from '../../services/api'
+import { obtenerEstadisticasUsuarios } from '../../services/userStorage'
 import UserStatsCards from '../../components/Admin/UserStatsCards'
 import UserTable from '../../components/Admin/UserTable'
 import UserDetailModal from '../../components/Admin/UserDetailModal'
 import './AdminUsuarios.css'
 
 const AdminUsuarios = () => {
-  const [usuarios, setUsuarios] = useState(obtenerUsuarios)
+  const [usuarios, setUsuarios] = useState([])
   const [searchEmail, setSearchEmail] = useState('')
   const [filterRole, setFilterRole] = useState('todos')
   const [selectedUser, setSelectedUser] = useState(null)
-  const [workoutCounts, setWorkoutCounts] = useState({ registrados: 0, completados: 0, pendientes: 0 })
   const [message, setMessage] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    const loadUsers = async () => {
+      try {
+        const users = await fetchUsers()
+        if (mounted) setUsuarios(users)
+      } catch (err) {
+        if (mounted) setError(err.message || 'No se pudieron cargar los usuarios')
+      } finally {
+        if (mounted) setLoading(false)
+      }
+    }
+    loadUsers()
+    return () => { mounted = false }
+  }, [])
 
   const stats = useMemo(() => obtenerEstadisticasUsuarios(usuarios), [usuarios])
 
@@ -39,27 +54,23 @@ const AdminUsuarios = () => {
   }, [usuarios, searchEmail, filterRole])
 
   const handleView = (user) => {
-    const counts = obtenerConteoEntrenamientos(user.id)
-    setWorkoutCounts(counts)
     setSelectedUser(user)
   }
 
-  const handleUpdateUser = (id, updatedData) => {
-    const result = actualizarPerfil(id, updatedData)
-    if (!result) {
-      setMessage('No se pudo actualizar el usuario.')
-      return
-    }
-
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
-    setMessage(`Usuario ${result.nombre} actualizado correctamente.`)
-    if (selectedUser?.id === id) {
-      setSelectedUser(result)
+  const handleUpdateUser = async (id, updatedData) => {
+    try {
+      const result = await updateUserToApi(id, updatedData)
+      setUsuarios((prev) => prev.map((user) => (user.id === id ? result : user)))
+      setMessage(`Usuario ${result.nombre} actualizado correctamente.`)
+      if (selectedUser?.id === id) {
+        setSelectedUser(result)
+      }
+    } catch (error) {
+      setMessage(error.message || 'No se pudo actualizar el usuario.')
     }
   }
 
-  const handleDelete = (user) => {
+  const handleDelete = async (user) => {
     if (user.rol === 'admin') {
       setMessage('No se pueden eliminar administradores.')
       return
@@ -68,13 +79,19 @@ const AdminUsuarios = () => {
     const confirmDelete = window.confirm(`¿Eliminar al usuario ${user.nombre}? Esta acción no se puede deshacer.`)
     if (!confirmDelete) return
 
-    eliminarUsuario(user.id)
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
-    setMessage(`Usuario ${user.nombre} eliminado correctamente.`)
+    try {
+      await deleteUserFromApi(user.id)
+      setUsuarios((prev) => prev.filter((u) => u.id !== user.id))
+      setMessage(`Usuario ${user.nombre} eliminado correctamente.`)
+      if (selectedUser?.id === user.id) {
+        setSelectedUser(null)
+      }
+    } catch (error) {
+      setMessage(error.message || `No se pudo eliminar al usuario ${user.nombre}.`)
+    }
   }
 
-  const handleToggleBlock = (user) => {
+  const handleToggleBlock = async (user) => {
     if (user.rol === 'admin') {
       setMessage('No se puede bloquear al administrador.')
       return
@@ -84,13 +101,18 @@ const AdminUsuarios = () => {
     const confirmBlock = window.confirm(`¿Deseas ${action} al usuario ${user.nombre}?`)
     if (!confirmBlock) return
 
-    actualizarBloqueoUsuario(user.id, !user.bloqueado)
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
-    setMessage(`Usuario ${user.nombre} ${user.bloqueado ? 'desbloqueado' : 'bloqueado'} correctamente.`)
-
-    if (selectedUser?.id === user.id) {
-      setSelectedUser(currentUsers.find((u) => u.id === user.id))
+    try {
+      const updatedUser = await updateUserToApi(user.id, {
+        bloqueado: !user.bloqueado,
+        fechaBloqueo: !user.bloqueado ? new Date().toISOString() : null,
+      })
+      setUsuarios((prev) => prev.map((u) => (u.id === user.id ? updatedUser : u)))
+      setMessage(`Usuario ${user.nombre} ${user.bloqueado ? 'desbloqueado' : 'bloqueado'} correctamente.`)
+      if (selectedUser?.id === user.id) {
+        setSelectedUser(updatedUser)
+      }
+    } catch (error) {
+      setMessage(error.message || `No se pudo ${action} al usuario ${user.nombre}.`)
     }
   }
 
@@ -136,7 +158,6 @@ const AdminUsuarios = () => {
       {selectedUser && (
         <UserDetailModal
           user={selectedUser}
-          workoutCounts={workoutCounts}
           onClose={() => setSelectedUser(null)}
         />
       )}

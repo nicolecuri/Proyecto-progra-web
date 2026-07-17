@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { getCurrentUser } from '../../services/userStorage';
+import { fetchRoutines, fetchTracking, saveTracking } from '../../services/api';
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -23,19 +24,7 @@ const Dashboard = () => {
   const [currentUser] = useState(() => getCurrentUser());
   const [routines, setRoutines] = useState([]);
   const [activeRoutineId, setActiveRoutineId] = useState('');
-  const [tracking, setTracking] = useState(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const trackingCacheKey = `fitplanner-tracking-${todayStr}`;
-    const savedTracking = localStorage.getItem(trackingCacheKey);
-    if (savedTracking) {
-      try {
-        return JSON.parse(savedTracking);
-      } catch (e) {
-        console.error('Error parsing tracking data:', e);
-      }
-    }
-    return {};
-  });
+  const [tracking, setTracking] = useState({});
 
   // Timer states
   const [suggestTimerFor, setSuggestTimerFor] = useState(null);
@@ -43,21 +32,13 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    try {
-      const user = getCurrentUser()
-      const ident = user ? (user.correo || user.id || user.nombre) : 'guest'
-      const key = `fitplanner-v1:${ident}`
-      const persisted = localStorage.getItem(key)
-      if (persisted) {
-        const parsed = JSON.parse(persisted)
-        const allRoutines = []
-        if (parsed.savedRoutines && parsed.savedRoutines.length > 0) {
-          allRoutines.push(...parsed.savedRoutines)
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setRoutines(allRoutines)
+    let mounted = true
+    const loadRoutines = async () => {
+      try {
+        const allRoutines = await fetchRoutines()
+        if (!mounted) return
+        setRoutines(Array.isArray(allRoutines) ? allRoutines : [])
 
-        // Cargar rutina activa seleccionada previamente o usar la primera disponible
         const savedActiveId = localStorage.getItem('fitplanner-active-routine');
         if (savedActiveId && savedActiveId !== 'draft' && allRoutines.some(r => r.id === savedActiveId)) {
           setActiveRoutineId(savedActiveId);
@@ -65,10 +46,13 @@ const Dashboard = () => {
           setActiveRoutineId(allRoutines[0].id);
           localStorage.setItem('fitplanner-active-routine', allRoutines[0].id);
         }
+      } catch (e) {
+        console.error('Error cargando rutinas desde API:', e)
       }
-    } catch (e) {
-      console.error('Error cargando rutinas desde caché:', e)
     }
+
+    loadRoutines()
+    return () => { mounted = false }
   }, []);
 
   // Cálculo dinámico de todayPlan sin usar effect para evitar renders dobles
@@ -126,7 +110,7 @@ const Dashboard = () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const historyRaw = localStorage.getItem('fittrack-history');
       const history = historyRaw ? JSON.parse(historyRaw) : {};
-      
+
       const calcIntensity = Math.min(4, Math.ceil(stats.time / 20));
 
       history[todayStr] = {
@@ -135,10 +119,29 @@ const Dashboard = () => {
         time: `${stats.time} min`,
         muscles: stats.muscles
       };
-      
+
       localStorage.setItem('fittrack-history', JSON.stringify(history));
     }
   }, [stats]);
+
+  // Load today's tracking from API when user is present
+  useEffect(() => {
+    let mounted = true
+    const loadToday = async () => {
+      try {
+        const user = getCurrentUser()
+        if (!user) return
+        const todayStr = new Date().toISOString().split('T')[0]
+        const data = await fetchTracking(user.id, todayStr)
+        if (!mounted) return
+        setTracking(data || {})
+      } catch (e) {
+        console.error('No se pudo cargar tracking desde API:', e)
+      }
+    }
+    loadToday()
+    return () => { mounted = false }
+  }, [])
 
   const handleStatusChange = (id, newStatus, minutesSpent = null) => {
     setTracking(prev => {
@@ -148,9 +151,18 @@ const Dashboard = () => {
       }
 
       const updated = { ...prev, [id]: updatedValue };
+      // persist to API for today's date
       const todayStr = new Date().toISOString().split('T')[0];
-      const cacheKey = `fitplanner-tracking-${todayStr}`;
-      localStorage.setItem(cacheKey, JSON.stringify(updated));
+      const user = getCurrentUser();
+      if (user && user.id) {
+        ;(async () => {
+          try {
+            await saveTracking(user.id, todayStr, updated)
+          } catch (err) {
+            console.error('Error guardando tracking en API:', err)
+          }
+        })()
+      }
       return updated;
     });
 

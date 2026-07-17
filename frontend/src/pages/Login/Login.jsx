@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUsuario, ensureAdminUser } from '../../services/userStorage';
+import { loginUserToApi } from '../../services/api';
+import { setCurrentUser } from '../../services/userStorage';
 import './Login.css';
 
 const Login = () => {
@@ -15,30 +16,26 @@ const Login = () => {
     setLoading(true);
     setError('');
 
-    // Pequeña demora visual para que el botón muestre "Cargando..."
-    await new Promise(r => setTimeout(r, 400));
+    try {
+      const usuario = await loginUserToApi(email, password);
+      setCurrentUser(usuario);
 
-    ensureAdminUser();
-    const usuario = loginUsuario(email, password);
+      if (usuario.blocked) {
+        setError('Su cuenta se encuentra bloqueada.');
+        return;
+      }
 
-    setLoading(false);
+      if (usuario.rol === 'admin') {
+        navigate('/admin');
+        return;
+      }
 
-    if (!usuario) {
-      setError('Correo o contraseña incorrectos.');
-      return;
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.message || 'Correo o contraseña incorrectos.');
+    } finally {
+      setLoading(false);
     }
-
-    if (usuario.blocked) {
-      setError('Su cuenta se encuentra bloqueada.');
-      return;
-    }
-
-    if (usuario.rol === 'admin') {
-      navigate('/admin');
-      return;
-    }
-
-    navigate('/dashboard');
   };
 
   return (

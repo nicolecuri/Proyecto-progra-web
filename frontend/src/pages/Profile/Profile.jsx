@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { getCurrentUser, actualizarPerfil } from '../../services/userStorage';
+import { getCurrentUser, setCurrentUser } from '../../services/userStorage';
+import { updateUserToApi } from '../../services/api';
 import './Profile.css';
 
 /* ── Helpers ────────────────────────────────────────── */
@@ -50,7 +51,7 @@ const Profile = () => {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!userId) return;
 
@@ -63,11 +64,14 @@ const Profile = () => {
       objetivo: formData.objetivo,
     };
 
-    const result = actualizarPerfil(userId, dataToSave);
-    if (result) {
+    try {
+      const updatedUser = await updateUserToApi(userId, dataToSave);
+      setCurrentUser(updatedUser);
       setMessage('¡Perfil actualizado con éxito!');
       setTimeout(() => setMessage(''), 3000);
       window.dispatchEvent(new Event('profileUpdated'));
+    } catch (error) {
+      setMessage(error.message || 'No se pudo actualizar el perfil.');
     }
   };
 

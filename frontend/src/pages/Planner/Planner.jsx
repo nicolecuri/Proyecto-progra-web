@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { PlannerProvider, usePlanner } from '../../contexts/PlannerContext'
+import { saveRoutineToApi } from '../../services/api'
 import DashboardPanel from '../../components/Planner/DashboardPanel'
 import DaySelector from '../../components/Planner/DaySelector'
 import DayView from '../../components/Planner/DayView'
@@ -10,6 +11,20 @@ function PlannerInner(){
   const { state, resumen, actions } = usePlanner()
   const [selected, setSelected] = useState(state.plan.dias[0].diaNombre)
   const dia = state.plan.dias.find((d) => d.diaNombre === selected)
+
+  const handleSave = async (name) => {
+    try {
+      const routineToSave = {
+        nombre: name?.trim() || state.plan.nombre || `Rutina ${state.savedRoutines.length + 1}`,
+        plan: state.plan,
+      }
+      const saved = await saveRoutineToApi(routineToSave)
+      actions.addApiRoutine(saved)
+    } catch (error) {
+      console.error('Error guardando rutina en API:', error)
+      alert('No se pudo guardar la rutina en el servidor. Intenta nuevamente.')
+    }
+  }
 
   const handleDownload = () => {
     const filename = `${state.plan.nombre.replace(/\s+/g,'_').toLowerCase() || 'rutina'}.json`
@@ -39,7 +54,7 @@ function PlannerInner(){
 
       <div style={{flex:2}}>
         <RoutineActions
-          onSave={actions.saveRoutine}
+          onSave={handleSave}
           onDownload={handleDownload}
           onPrint={handlePrint}
           editingRoutineId={state.editingRoutineId}

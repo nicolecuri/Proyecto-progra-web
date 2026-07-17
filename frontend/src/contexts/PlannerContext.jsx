@@ -1,6 +1,7 @@
 import { createContext, useReducer, useEffect, useMemo, useContext } from 'react'
 import { plannerReducer, initialPlan } from './plannerReducer'
 import { getCurrentUser } from '../services/userStorage'
+import { fetchRoutines } from '../services/api'
 import { summarizeWeek } from '../utils/calculations'
 
 const PlannerContext = createContext(null)
@@ -45,6 +46,23 @@ export function PlannerProvider({ children }) {
     }
   }, [state])
 
+  useEffect(() => {
+    let mounted = true
+    const loadRoutines = async () => {
+      try {
+        const routines = await fetchRoutines()
+        if (mounted) {
+          dispatch({ type: 'SET_SAVED_ROUTINES', payload: routines })
+        }
+      } catch (error) {
+        console.warn('Error cargando rutinas desde el API:', error)
+      }
+    }
+
+    loadRoutines()
+    return () => { mounted = false }
+  }, [])
+
   const resumen = useMemo(() => summarizeWeek(state.plan), [state.plan])
 
   const actions = {
@@ -55,6 +73,7 @@ export function PlannerProvider({ children }) {
     reorderExercises: (diaNombre, newOrder) => dispatch({ type: 'REORDER_EXERCISES', payload: { diaNombre, newOrder } }),
     toggleDescanso: (diaNombre) => dispatch({ type: 'TOGGLE_DESCANSO', payload: { diaNombre } }),
     saveRoutine: (name) => dispatch({ type: 'SAVE_ROUTINE', payload: { name } }),
+    addApiRoutine: (routine) => dispatch({ type: 'ADD_API_ROUTINE', payload: routine }),
     setPreviewRoutine: (id) => dispatch({ type: 'SET_PREVIEW_ROUTINE', payload: { id } }),
     loadRoutine: (id) => dispatch({ type: 'LOAD_ROUTINE', payload: { id } }),
     deleteRoutine: (id) => dispatch({ type: 'DELETE_ROUTINE', payload: { id } }),

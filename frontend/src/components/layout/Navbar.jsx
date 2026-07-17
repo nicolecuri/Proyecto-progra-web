@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { getCurrentUser } from '../../services/userStorage';
+import { clearCurrentUser, getCurrentUser } from '../../services/userStorage';
 import './Navbar.css';
 
 const NAV_LINKS = [
@@ -71,7 +71,7 @@ const Navbar = () => {
   const displayEmail = userData.correo  || userData.email || '';
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    clearCurrentUser();
     setUserData({ nombre: 'Usuario', correo: 'usuario@correo.com', rol: 'usuario' });
     navigate('/');
   };

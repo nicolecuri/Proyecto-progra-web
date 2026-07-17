@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCurrentUser } from '../../services/userStorage';
+import { fetchRoutines, fetchTracking, saveTracking } from '../../services/api';
 import Calendar from '../../components/Calendar/Calendar';
 import './Progress.css';
 
@@ -74,18 +75,26 @@ const Progress = () => {
   const todayName = dayNames[today.getDay()];
   const todayKey = `fitplanner-tracking-${formatDate(today)}`;
 
-  const [rutinas] = useState(() => {
-    try {
-      const persisted = localStorage.getItem(getStorageKey());
-      if (persisted) {
-        const parsed = JSON.parse(persisted);
-        return Array.isArray(parsed.savedRoutines) ? parsed.savedRoutines : [];
+  const [rutinas, setRutinas] = useState([])
+  const [loadingRutinas, setLoadingRutinas] = useState(true)
+  const [rutinasError, setRutinasError] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+    const loadRutinas = async () => {
+      try {
+        const fetched = await fetchRoutines()
+        if (mounted) setRutinas(Array.isArray(fetched) ? fetched : [])
+      } catch (error) {
+        if (mounted) setRutinasError(error.message || 'No se pudieron cargar las rutinas')
+      } finally {
+        if (mounted) setLoadingRutinas(false)
       }
-    } catch (e) {
-      console.error('Error al cargar rutinas guardadas:', e);
     }
-    return [];
-  });
+
+    loadRutinas()
+    return () => { mounted = false }
+  }, [])
 
   const [rutinaSeleccionada, setRutinaSeleccionada] = useState(() => {
     try {
@@ -314,19 +323,19 @@ const Progress = () => {
     }
   };
 
-  const updateTodayTrackingIfNeeded = (exerciseId, completed, dayName) => {
+  const updateTodayTrackingIfNeeded = async (exerciseId, completed, dayName) => {
     const activeRoutineId = localStorage.getItem(ACTIVE_ROUTINE_KEY);
     if (rutinaSeleccionada !== activeRoutineId || dayName !== todayName) return;
 
     try {
-      const raw = localStorage.getItem(todayKey);
-      const parsed = raw ? JSON.parse(raw) : {};
-      if (completed) {
-        parsed[exerciseId] = 'done';
-      } else {
-        delete parsed[exerciseId];
-      }
-      localStorage.setItem(todayKey, JSON.stringify(parsed));
+      const user = getCurrentUser();
+      const raw = await (async () => {
+        if (!user) return null
+        return fetchTracking(user.id, todayKey.replace('fitplanner-tracking-', ''))
+      })()
+      const parsed = raw ? raw : {};
+      if (completed) parsed[exerciseId] = 'done'; else delete parsed[exerciseId];
+      if (user) await saveTracking(user.id, new Date().toISOString().split('T')[0], parsed)
     } catch (e) {
       console.error('Error actualizando tracking diario:', e);
     }
@@ -407,7 +416,11 @@ const Progress = () => {
           <p>
             {selectedRoutine
               ? `Rutina seleccionada: ${selectedRoutine.nombre}. ${dias.length} días en la rutina.`
-              : 'No hay rutinas guardadas. Crea una desde el Planificador.'}
+              : loadingRutinas
+                ? 'Cargando rutinas desde el servidor...'
+                : rutinasError
+                  ? 'No se pudieron cargar las rutinas desde el servidor.'
+                  : 'No hay rutinas guardadas. Crea una desde el Planificador.'}
           </p>
         </section>
 
