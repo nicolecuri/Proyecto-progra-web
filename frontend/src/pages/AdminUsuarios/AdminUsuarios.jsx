@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import {
   obtenerUsuarios,
   eliminarUsuario,
@@ -13,12 +13,21 @@ import UserDetailModal from '../../components/Admin/UserDetailModal'
 import './AdminUsuarios.css'
 
 const AdminUsuarios = () => {
-  const [usuarios, setUsuarios] = useState(obtenerUsuarios)
+  const [usuarios, setUsuarios] = useState([])
   const [searchEmail, setSearchEmail] = useState('')
   const [filterRole, setFilterRole] = useState('todos')
   const [selectedUser, setSelectedUser] = useState(null)
   const [workoutCounts, setWorkoutCounts] = useState({ registrados: 0, completados: 0, pendientes: 0 })
   const [message, setMessage] = useState('')
+
+  useEffect(() => {
+    cargarUsuarios()
+  }, [])
+
+  const cargarUsuarios = async () => {
+    const data = await obtenerUsuarios()
+    setUsuarios(data)
+  }
 
   const stats = useMemo(() => obtenerEstadisticasUsuarios(usuarios), [usuarios])
 
@@ -44,22 +53,21 @@ const AdminUsuarios = () => {
     setSelectedUser(user)
   }
 
-  const handleUpdateUser = (id, updatedData) => {
-    const result = actualizarPerfil(id, updatedData)
+  const handleUpdateUser = async (id, updatedData) => {
+    const result = await actualizarPerfil(id, updatedData)
     if (!result) {
       setMessage('No se pudo actualizar el usuario.')
       return
     }
 
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
+    await cargarUsuarios()
     setMessage(`Usuario ${result.nombre} actualizado correctamente.`)
     if (selectedUser?.id === id) {
       setSelectedUser(result)
     }
   }
 
-  const handleDelete = (user) => {
+  const handleDelete = async (user) => {
     if (user.rol === 'admin') {
       setMessage('No se pueden eliminar administradores.')
       return
@@ -68,13 +76,12 @@ const AdminUsuarios = () => {
     const confirmDelete = window.confirm(`¿Eliminar al usuario ${user.nombre}? Esta acción no se puede deshacer.`)
     if (!confirmDelete) return
 
-    eliminarUsuario(user.id)
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
+    await eliminarUsuario(user.id)
+    await cargarUsuarios()
     setMessage(`Usuario ${user.nombre} eliminado correctamente.`)
   }
 
-  const handleToggleBlock = (user) => {
+  const handleToggleBlock = async (user) => {
     if (user.rol === 'admin') {
       setMessage('No se puede bloquear al administrador.')
       return
@@ -84,13 +91,13 @@ const AdminUsuarios = () => {
     const confirmBlock = window.confirm(`¿Deseas ${action} al usuario ${user.nombre}?`)
     if (!confirmBlock) return
 
-    actualizarBloqueoUsuario(user.id, !user.bloqueado)
-    const currentUsers = obtenerUsuarios()
-    setUsuarios(currentUsers)
+    await actualizarBloqueoUsuario(user.id, !user.bloqueado)
+    await cargarUsuarios()
     setMessage(`Usuario ${user.nombre} ${user.bloqueado ? 'desbloqueado' : 'bloqueado'} correctamente.`)
 
     if (selectedUser?.id === user.id) {
-      setSelectedUser(currentUsers.find((u) => u.id === user.id))
+      const actualizados = await obtenerUsuarios()
+      setSelectedUser(actualizados.find((u) => u.id === user.id))
     }
   }
 

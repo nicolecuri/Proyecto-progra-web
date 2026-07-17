@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { getCurrentUser } from '../../services/userStorage';
 import Calendar from '../../components/Calendar/Calendar';
+import { getAllRoutineProgress, saveRoutineProgress, saveDailyTracking, getHistory } from '../../services/trackingApi';
+import { getRoutinesByUser } from '../../services/routineApi';
 import './Progress.css';
 
 const BASE_KEY = 'fitplanner-v1';
@@ -74,18 +76,7 @@ const Progress = () => {
   const todayName = dayNames[today.getDay()];
   const todayKey = `fitplanner-tracking-${formatDate(today)}`;
 
-  const [rutinas] = useState(() => {
-    try {
-      const persisted = localStorage.getItem(getStorageKey());
-      if (persisted) {
-        const parsed = JSON.parse(persisted);
-        return Array.isArray(parsed.savedRoutines) ? parsed.savedRoutines : [];
-      }
-    } catch (e) {
-      console.error('Error al cargar rutinas guardadas:', e);
-    }
-    return [];
-  });
+  const [rutinas, setRutinas] = useState([]);
 
   const [rutinaSeleccionada, setRutinaSeleccionada] = useState(() => {
     try {
@@ -114,6 +105,38 @@ const Progress = () => {
     }
   });
 
+  const [historyLogs, setHistoryLogs] = useState([]);
+
+  useEffect(() => {
+    async function loadProgressAndRoutines() {
+      const user = getCurrentUser();
+      if (!user) return;
+      const userId = user.correo || user.id || user.nombre || 'guest';
+      
+      const [data, historyData, userRoutines] = await Promise.all([
+        getAllRoutineProgress(userId),
+        getHistory(userId),
+        getRoutinesByUser(userId)
+      ]);
+      
+      setRutinas(userRoutines);
+
+      if (!rutinaSeleccionada && userRoutines.length > 0) {
+        setRutinaSeleccionada(userRoutines[0].id);
+      }
+
+      if (data && Object.keys(data).length > 0) {
+        setProgressByRoutine(prev => {
+          const merged = { ...prev, ...data };
+          localStorage.setItem(getProgressStorageKey(), JSON.stringify(merged));
+          return merged;
+        });
+      }
+      if (historyData) setHistoryLogs(historyData);
+    }
+    loadProgressAndRoutines();
+  }, []);
+
   const [filtro, setFiltro] = useState('todas');
   const [mostrarModal, setMostrarModal] = useState(false);
   const [diaSeleccionada, setDiaSeleccionada] = useState(null);
@@ -136,7 +159,7 @@ const Progress = () => {
 
   const calendarEntries = useMemo(() => {
     try {
-      return Object.entries(progressByRoutine).flatMap(([routineId, progress]) => {
+      const routineEntries = Object.entries(progressByRoutine).flatMap(([routineId, progress]) => {
         try {
           const rutina = rutinas.find((r) => r.id === routineId);
           const diasRutina = Array.isArray(rutina?.plan?.dias) ? rutina.plan.dias : [];
@@ -145,7 +168,6 @@ const Progress = () => {
             try {
               if (!comentario || !comentario.fecha) return null;
               
-              // Asegurar que fecha es string antes de slice
               const fechaStr = String(comentario.fecha);
               const fecha = fechaStr.slice(0, 10);
               
@@ -172,7 +194,39 @@ const Progress = () => {
           console.warn(`Error procesando rutina ${routineId}:`, routineError);
           return [];
         }
-      }).sort((a, b) => {
+      }).filter(Boolean);
+
+      const historyEntries = historyLogs.map(log => {
+        const h = log.history?.[log.date] || log.history;
+        if (!h || Object.keys(h).length === 0) return null;
+        return {
+          date: log.date,
+          intensity: Number(h.intensity) || 0,
+          muscles: h.muscles || '',
+          time: h.time || '0 min',
+          rutinaId: null,
+          dia: 'Dashboard',
+          completed: true,
+          comments: 'Registrado hoy'
+        };
+      }).filter(Boolean);
+
+      const mergedMap = {};
+      routineEntries.forEach(e => {
+        if (e && e.date) mergedMap[e.date] = e;
+      });
+      historyEntries.forEach(e => {
+        if (e && e.date) {
+           mergedMap[e.date] = { 
+             ...(mergedMap[e.date] || {}), 
+             ...e, 
+             comments: mergedMap[e.date]?.comments || e.comments, 
+             dia: mergedMap[e.date]?.dia || e.dia 
+           };
+        }
+      });
+
+      return Object.values(mergedMap).sort((a, b) => {
         try {
           return a.date.localeCompare(b.date);
         } catch {
@@ -183,7 +237,7 @@ const Progress = () => {
       console.error('Error crítico en calendarEntries:', error);
       return [];
     }
-  }, [progressByRoutine, rutinas]);
+  }, [progressByRoutine, rutinas, historyLogs]);
 
   const workouts = calendarEntries;
 
@@ -327,6 +381,10 @@ const Progress = () => {
         delete parsed[exerciseId];
       }
       localStorage.setItem(todayKey, JSON.stringify(parsed));
+      
+      const user = getCurrentUser();
+      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      saveDailyTracking(userId, formatDate(today), { exercises: parsed });
     } catch (e) {
       console.error('Error actualizando tracking diario:', e);
     }
@@ -350,7 +408,13 @@ const Progress = () => {
           completedExercises,
         },
       };
+      
       updateTodayTrackingIfNeeded(exerciseId, !completed, dayName);
+      
+      const user = getCurrentUser();
+      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
+      
       return updated;
     });
   };
@@ -370,7 +434,7 @@ const Progress = () => {
     setProgressByRoutine((prev) => {
       const current = prev[rutinaSeleccionada] || { completedExercises: {}, dayComments: {} };
       const completada = isDayCompleted(dia);
-      return {
+      const updated = {
         ...prev,
         [rutinaSeleccionada]: {
           ...current,
@@ -385,6 +449,12 @@ const Progress = () => {
           },
         },
       };
+
+      const user = getCurrentUser();
+      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
+
+      return updated;
     });
 
     setMostrarModal(false);

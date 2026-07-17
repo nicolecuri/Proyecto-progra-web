@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { loginUsuario, ensureAdminUser } from '../../services/userStorage';
+import { loginUsuario } from '../../services/userStorage';
 import './Login.css';
 
 const Login = () => {
@@ -18,8 +18,7 @@ const Login = () => {
     // Pequeña demora visual para que el botón muestre "Cargando..."
     await new Promise(r => setTimeout(r, 400));
 
-    ensureAdminUser();
-    const usuario = loginUsuario(email, password);
+    const usuario = await loginUsuario(email, password);
 
     setLoading(false);
 

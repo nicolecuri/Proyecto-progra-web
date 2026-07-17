@@ -18,6 +18,19 @@ export function plannerReducer(state, action) {
     case 'INIT':
       return action.payload
 
+    case 'SET_SAVED_ROUTINES':
+      return {
+        ...state,
+        savedRoutines: action.payload
+      }
+
+    case 'RESET_PLAN':
+      return {
+        ...state,
+        plan: initialPlan(),
+        editingRoutineId: null,
+      }
+
     case 'ADD_EXERCISE': {
       const { diaNombre, ejercicio } = action.payload
       return {
@@ -108,7 +121,7 @@ export function plannerReducer(state, action) {
       }
     }
 
-    case 'SAVE_ROUTINE': {
+    case 'SAVE_ROUTINE_LOCAL': {
       const { name } = action.payload
       const routineName = name?.trim() || state.plan.nombre || `Rutina ${state.savedRoutines.length + 1}`
       const normalizedPlan = normalizePlan({ ...state.plan, nombre: routineName })
@@ -128,7 +141,7 @@ export function plannerReducer(state, action) {
       }
 
       const newRoutine = {
-        id: genId(),
+        id: 'local-' + genId(),
         nombre: routineName,
         createdAt: new Date().toISOString(),
         plan: { ...normalizedPlan, id: genId(), nombre: routineName },

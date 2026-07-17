@@ -2,6 +2,8 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 import { getCurrentUser } from '../../services/userStorage';
+import { getDailyTracking, saveDailyTracking, getRoutineProgress, saveRoutineProgress } from '../../services/trackingApi';
+import { getRoutinesByUser } from '../../services/routineApi';
 
 const getGreeting = () => {
   const h = new Date().getHours();
@@ -42,33 +44,43 @@ const Dashboard = () => {
   const [activeTimer, setActiveTimer] = useState(null);
   const navigate = useNavigate();
 
+  // Sincronizar tracking inicial con el backend (preservando localStorage)
   useEffect(() => {
-    try {
-      const user = getCurrentUser()
-      const ident = user ? (user.correo || user.id || user.nombre) : 'guest'
-      const key = `fitplanner-v1:${ident}`
-      const persisted = localStorage.getItem(key)
-      if (persisted) {
-        const parsed = JSON.parse(persisted)
-        const allRoutines = []
-        if (parsed.savedRoutines && parsed.savedRoutines.length > 0) {
-          allRoutines.push(...parsed.savedRoutines)
-        }
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        setRoutines(allRoutines)
-
-        // Cargar rutina activa seleccionada previamente o usar la primera disponible
-        const savedActiveId = localStorage.getItem('fitplanner-active-routine');
-        if (savedActiveId && savedActiveId !== 'draft' && allRoutines.some(r => r.id === savedActiveId)) {
-          setActiveRoutineId(savedActiveId);
-        } else if (allRoutines.length > 0) {
-          setActiveRoutineId(allRoutines[0].id);
-          localStorage.setItem('fitplanner-active-routine', allRoutines[0].id);
-        }
+    async function loadTracking() {
+      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      const todayStr = new Date().toISOString().split('T')[0];
+      const data = await getDailyTracking(userId, todayStr);
+      if (data && data.exercises) {
+        setTracking(prev => {
+          const merged = { ...prev, ...data.exercises };
+          localStorage.setItem(`fitplanner-tracking-${todayStr}`, JSON.stringify(merged));
+          return merged;
+        });
       }
-    } catch (e) {
-      console.error('Error cargando rutinas desde caché:', e)
     }
+    loadTracking();
+  }, [currentUser]);
+
+  useEffect(() => {
+    async function fetchRoutines() {
+      try {
+        const user = getCurrentUser()
+        const userId = user ? (user.id || user.correo || 'guest') : 'guest'
+        const fetchedRoutines = await getRoutinesByUser(userId)
+        setRoutines(fetchedRoutines)
+
+        const savedActiveId = localStorage.getItem('fitplanner-active-routine');
+        if (savedActiveId && savedActiveId !== 'draft' && fetchedRoutines.some(r => r.id === savedActiveId)) {
+          setActiveRoutineId(savedActiveId);
+        } else if (fetchedRoutines.length > 0) {
+          setActiveRoutineId(fetchedRoutines[0].id);
+          localStorage.setItem('fitplanner-active-routine', fetchedRoutines[0].id);
+        }
+      } catch (e) {
+        console.error('Error cargando rutinas desde la API:', e)
+      }
+    }
+    fetchRoutines()
   }, []);
 
   // Cálculo dinámico de todayPlan sin usar effect para evitar renders dobles
@@ -129,16 +141,21 @@ const Dashboard = () => {
       
       const calcIntensity = Math.min(4, Math.ceil(stats.time / 20));
 
-      history[todayStr] = {
+      const historyUpdate = {
         date: todayStr,
         intensity: calcIntensity,
         time: `${stats.time} min`,
         muscles: stats.muscles
       };
+
+      history[todayStr] = historyUpdate;
       
       localStorage.setItem('fittrack-history', JSON.stringify(history));
+
+      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      saveDailyTracking(userId, todayStr, { history: { [todayStr]: historyUpdate } });
     }
-  }, [stats]);
+  }, [stats, currentUser]);
 
   const handleStatusChange = (id, newStatus, minutesSpent = null) => {
     setTracking(prev => {
@@ -151,6 +168,27 @@ const Dashboard = () => {
       const todayStr = new Date().toISOString().split('T')[0];
       const cacheKey = `fitplanner-tracking-${todayStr}`;
       localStorage.setItem(cacheKey, JSON.stringify(updated));
+
+      // Sincronización con backend
+      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      saveDailyTracking(userId, todayStr, { exercises: updated });
+      
+      if (activeRoutineId) {
+         getRoutineProgress(userId, activeRoutineId).then(progress => {
+            const currentCompleted = progress?.completedExercises || {};
+            if (newStatus === 'done') {
+               currentCompleted[id] = true;
+            } else {
+               delete currentCompleted[id];
+            }
+            const updatedProgress = { 
+              completedExercises: currentCompleted, 
+              dayComments: progress?.dayComments || {} 
+            };
+            saveRoutineProgress(userId, activeRoutineId, updatedProgress);
+         });
+      }
+
       return updated;
     });
 

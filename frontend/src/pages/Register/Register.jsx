@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { registrarUsuario, ensureAdminUser } from '../../services/userStorage';
+import { registrarUsuario } from '../../services/userStorage';
 import './Register.css';
 
 const Register = () => {
@@ -38,8 +38,7 @@ const Register = () => {
     setLoading(true);
     await new Promise(r => setTimeout(r, 400));
 
-    ensureAdminUser();
-    const nuevoUsuario = registrarUsuario({
+    const nuevoUsuario = await registrarUsuario({
       nombre: formData.nombre,
       correo: formData.correo,
       password: formData.password,
