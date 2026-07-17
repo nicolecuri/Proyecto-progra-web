@@ -1,7 +1,7 @@
 import { createContext, useReducer, useEffect, useMemo, useContext } from 'react'
 import { plannerReducer, initialPlan } from './plannerReducer'
 import { getCurrentUser } from '../services/userStorage'
-import { fetchRoutines } from '../services/api'
+import { fetchRoutines, saveRoutineToApi, deleteRoutineFromApi } from '../services/api'
 import { summarizeWeek } from '../utils/calculations'
 
 const PlannerContext = createContext(null)
@@ -50,7 +50,8 @@ export function PlannerProvider({ children }) {
     let mounted = true
     const loadRoutines = async () => {
       try {
-        const routines = await fetchRoutines()
+        const currentUser = getCurrentUser()
+        const routines = await fetchRoutines(currentUser?.id || null)
         if (mounted) {
           dispatch({ type: 'SET_SAVED_ROUTINES', payload: routines })
         }
@@ -72,11 +73,25 @@ export function PlannerProvider({ children }) {
     moveExercise: (diaNombre, id, direction) => dispatch({ type: 'MOVE_EXERCISE', payload: { diaNombre, id, direction } }),
     reorderExercises: (diaNombre, newOrder) => dispatch({ type: 'REORDER_EXERCISES', payload: { diaNombre, newOrder } }),
     toggleDescanso: (diaNombre) => dispatch({ type: 'TOGGLE_DESCANSO', payload: { diaNombre } }),
-    saveRoutine: (name) => dispatch({ type: 'SAVE_ROUTINE', payload: { name } }),
+    saveRoutine: async (name) => {
+      const currentUser = getCurrentUser()
+      const routine = {
+        nombre: name?.trim() || state.plan.nombre || `Rutina ${state.savedRoutines.length + 1}`,
+        plan: state.plan,
+        userId: currentUser?.id || null,
+      }
+      const saved = await saveRoutineToApi(routine)
+      dispatch({ type: 'ADD_API_ROUTINE', payload: saved })
+      return saved
+    },
     addApiRoutine: (routine) => dispatch({ type: 'ADD_API_ROUTINE', payload: routine }),
     setPreviewRoutine: (id) => dispatch({ type: 'SET_PREVIEW_ROUTINE', payload: { id } }),
     loadRoutine: (id) => dispatch({ type: 'LOAD_ROUTINE', payload: { id } }),
-    deleteRoutine: (id) => dispatch({ type: 'DELETE_ROUTINE', payload: { id } }),
+    deleteRoutine: async (id) => {
+      const currentUser = getCurrentUser()
+      await deleteRoutineFromApi(id, currentUser?.id || null)
+      dispatch({ type: 'DELETE_ROUTINE', payload: { id } })
+    },
   }
 
   return (

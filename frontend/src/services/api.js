@@ -13,8 +13,9 @@ export async function fetchExercises() {
   return handleResponse(response, 'No se pudieron cargar los ejercicios')
 }
 
-export async function fetchRoutines() {
-  const response = await fetch(`${API_BASE_URL}/api/routines`)
+export async function fetchRoutines(userId) {
+  const url = userId ? `${API_BASE_URL}/api/routines?userId=${encodeURIComponent(userId)}` : `${API_BASE_URL}/api/routines`
+  const response = await fetch(url)
   return handleResponse(response, 'No se pudieron cargar las rutinas')
 }
 
@@ -66,6 +67,15 @@ export async function saveRoutineToApi(routine) {
     body: JSON.stringify(routine),
   })
   return handleResponse(response, 'No se pudo guardar la rutina')
+}
+
+export async function deleteRoutineFromApi(id, userId) {
+  const response = await fetch(`${API_BASE_URL}/api/routines/${id}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId }),
+  })
+  return handleResponse(response, 'No se pudo eliminar la rutina')
 }
 
 export async function fetchTracking(userId, date) {

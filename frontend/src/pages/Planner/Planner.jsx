@@ -14,12 +14,7 @@ function PlannerInner(){
 
   const handleSave = async (name) => {
     try {
-      const routineToSave = {
-        nombre: name?.trim() || state.plan.nombre || `Rutina ${state.savedRoutines.length + 1}`,
-        plan: state.plan,
-      }
-      const saved = await saveRoutineToApi(routineToSave)
-      actions.addApiRoutine(saved)
+      await actions.saveRoutine(name)
     } catch (error) {
       console.error('Error guardando rutina en API:', error)
       alert('No se pudo guardar la rutina en el servidor. Intenta nuevamente.')
