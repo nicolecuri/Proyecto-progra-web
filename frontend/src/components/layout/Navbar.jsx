@@ -37,6 +37,7 @@ const Navbar = () => {
     if (location.pathname !== '/' && location.pathname !== '/register') {
       const currentUser = getCurrentUser();
       if (currentUser) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUserData(currentUser);
       }
     }
@@ -55,6 +56,7 @@ const Navbar = () => {
 
   /* Cerrar mobile menu en cambio de ruta */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMobileOpen(false);
     setIsDropdownOpen(false);
   }, [location.pathname]);
