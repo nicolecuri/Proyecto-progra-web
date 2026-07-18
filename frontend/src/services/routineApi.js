@@ -2,7 +2,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export async function getRoutinesByUser(userId) {
   try {
-    const response = await fetch(`${API_URL}/routines/user/${userId}`)
+    const response = await fetch(`${API_URL}/routines?userId=${userId}`)
     if (!response.ok) return []
     return await response.json()
   } catch (error) {
