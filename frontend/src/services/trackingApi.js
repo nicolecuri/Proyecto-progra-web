@@ -3,7 +3,7 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api'
 
 export async function getDailyTracking(userId, date) {
   try {
-    const response = await fetch(`${API_URL}/tracking/daily/${userId}/${date}`)
+    const response = await fetch(`${API_URL}/tracking/${userId}/${date}`)
     if (!response.ok) throw new Error('Error al obtener tracking diario')
     return await response.json()
   } catch (error) {
@@ -14,12 +14,12 @@ export async function getDailyTracking(userId, date) {
 
 export async function saveDailyTracking(userId, date, data) {
   try {
-    const response = await fetch(`${API_URL}/tracking/daily/${userId}/${date}`, {
+    const response = await fetch(`${API_URL}/tracking`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ userId, date, data }),
     })
     if (!response.ok) throw new Error('Error al guardar tracking diario')
     return await response.json()
@@ -31,7 +31,7 @@ export async function saveDailyTracking(userId, date, data) {
 
 export async function getRoutineProgress(userId, routineId) {
   try {
-    const response = await fetch(`${API_URL}/tracking/progress/${userId}/${routineId}`)
+    const response = await fetch(`${API_URL}/tracking/${userId}/routine-${routineId}`)
     if (!response.ok) throw new Error('Error al obtener progreso de rutina')
     return await response.json()
   } catch (error) {
@@ -42,16 +42,17 @@ export async function getRoutineProgress(userId, routineId) {
 
 export async function getAllRoutineProgress(userId) {
   try {
-    const response = await fetch(`${API_URL}/tracking/progress/${userId}`)
+    const response = await fetch(`${API_URL}/tracking/${userId}`)
     if (!response.ok) throw new Error('Error al obtener todos los progresos')
     const results = await response.json()
     // Transform array format from backend to the map format expected by frontend: { routineId: { completedExercises, dayComments } }
     const progressMap = {}
     if (Array.isArray(results)) {
-      results.forEach(p => {
-        progressMap[p.routineId] = {
-          completedExercises: p.completedExercises || {},
-          dayComments: p.dayComments || {},
+      results.filter(p => p.date.startsWith('routine-')).forEach(p => {
+        const routineId = p.date.replace('routine-', '')
+        progressMap[routineId] = {
+          completedExercises: p.data?.completedExercises || {},
+          dayComments: p.data?.dayComments || {},
         }
       })
     }
@@ -64,12 +65,12 @@ export async function getAllRoutineProgress(userId) {
 
 export async function saveRoutineProgress(userId, routineId, data) {
   try {
-    const response = await fetch(`${API_URL}/tracking/progress/${userId}/${routineId}`, {
+    const response = await fetch(`${API_URL}/tracking`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ userId, date: `routine-${routineId}`, data }),
     })
     if (!response.ok) throw new Error('Error al guardar progreso de rutina')
     return await response.json()
@@ -81,9 +82,10 @@ export async function saveRoutineProgress(userId, routineId, data) {
 
 export async function getHistory(userId) {
   try {
-    const response = await fetch(`${API_URL}/tracking/history/${userId}`)
+    const response = await fetch(`${API_URL}/tracking/${userId}`)
     if (!response.ok) throw new Error('Error al obtener historial')
-    return await response.json()
+    const results = await response.json()
+    return Array.isArray(results) ? results.filter(p => !p.date.startsWith('routine-')) : []
   } catch (error) {
     console.error(error)
     return []
