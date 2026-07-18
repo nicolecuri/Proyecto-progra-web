@@ -102,8 +102,6 @@ const Progress = () => {
         return;
       }
       const userId = user.id || user.correo || user.nombre || 'guest';
-      console.log('[Progress] userId usado:', userId);
-      console.log('[Progress] user object:', JSON.stringify(user));
       
       const [data, historyData, userRoutines] = await Promise.all([
         getAllRoutineProgress(userId),
@@ -111,32 +109,22 @@ const Progress = () => {
         getRoutinesByUser(userId)
       ]);
       
-      console.log('[Progress] getAllRoutineProgress result:', JSON.stringify(data));
-      console.log('[Progress] getHistory result:', JSON.stringify(historyData));
-      console.log('[Progress] getRoutinesByUser result:', JSON.stringify(userRoutines?.map(r => ({ id: r.id, nombre: r.nombre }))));
-      
       setRutinas(userRoutines);
 
-      // Always validate the saved routine ID against the fetched list
-      // If it doesn't exist in the list, fall back to the first routine
       if (userRoutines.length > 0) {
         const savedId = localStorage.getItem(ACTIVE_ROUTINE_KEY);
         const isValidSaved = savedId && userRoutines.some(r => r.id === savedId);
         const selectedId = isValidSaved ? savedId : userRoutines[0].id;
-        console.log('[Progress] savedId:', savedId, 'isValid:', isValidSaved, 'selectedId:', selectedId);
         setRutinaSeleccionada(selectedId);
         localStorage.setItem(ACTIVE_ROUTINE_KEY, selectedId);
       }
 
       if (data && Object.keys(data).length > 0) {
-        console.log('[Progress] Merging progress data. Keys:', Object.keys(data));
         setProgressByRoutine(prev => {
           const merged = { ...prev, ...data };
           localStorage.setItem(getProgressStorageKey(), JSON.stringify(merged));
           return merged;
         });
-      } else {
-        console.log('[Progress] NO progress data returned from API');
       }
       if (historyData) setHistoryLogs(historyData);
       setIsLoading(false);

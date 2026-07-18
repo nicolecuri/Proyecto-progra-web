@@ -10,7 +10,7 @@ const BASE_KEY = 'fitplanner-v1'
 const getStorageKey = () => {
   const user = getCurrentUser()
   if (!user) return `${BASE_KEY}:guest`
-  const ident = user.correo || user.id || user.nombre || 'guest'
+  const ident = user.id || user.correo || user.nombre || 'guest'
   return `${BASE_KEY}:${ident}`
 }
 
