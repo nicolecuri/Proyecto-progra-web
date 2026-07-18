@@ -17,7 +17,7 @@ const MONTH_ES = [
 const getStorageKey = () => {
   const user = getCurrentUser();
   if (!user) return `${BASE_KEY}:guest`;
-  return `${BASE_KEY}:${user.correo || user.id || user.nombre || 'guest'}`;
+  return `${BASE_KEY}:${user.id || user.correo || user.nombre || 'guest'}`;
 };
 
 const getProgressStorageKey = () => `${getStorageKey()}:progress`;
@@ -111,7 +111,7 @@ const Progress = () => {
     async function loadProgressAndRoutines() {
       const user = getCurrentUser();
       if (!user) return;
-      const userId = user.correo || user.id || user.nombre || 'guest';
+      const userId = user.id || user.correo || user.nombre || 'guest';
       
       const [data, historyData, userRoutines] = await Promise.all([
         getAllRoutineProgress(userId),
@@ -197,7 +197,7 @@ const Progress = () => {
       }).filter(Boolean);
 
       const historyEntries = historyLogs.map(log => {
-        const h = log.history?.[log.date] || log.history;
+        const h = log.data?.history?.[log.date] || log.data?.history;
         if (!h || Object.keys(h).length === 0) return null;
         return {
           date: log.date,
@@ -383,7 +383,7 @@ const Progress = () => {
       localStorage.setItem(todayKey, JSON.stringify(parsed));
       
       const user = getCurrentUser();
-      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
       saveDailyTracking(userId, formatDate(today), { exercises: parsed });
     } catch (e) {
       console.error('Error actualizando tracking diario:', e);
@@ -412,7 +412,7 @@ const Progress = () => {
       updateTodayTrackingIfNeeded(exerciseId, !completed, dayName);
       
       const user = getCurrentUser();
-      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
       saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
       
       return updated;
@@ -451,7 +451,7 @@ const Progress = () => {
       };
 
       const user = getCurrentUser();
-      const userId = user ? (user.correo || user.id || user.nombre || 'guest') : 'guest';
+      const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
       saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
 
       return updated;

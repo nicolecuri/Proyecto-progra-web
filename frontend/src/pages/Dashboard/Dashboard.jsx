@@ -47,7 +47,7 @@ const Dashboard = () => {
   // Sincronizar tracking inicial con el backend (preservando localStorage)
   useEffect(() => {
     async function loadTracking() {
-      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      const userId = currentUser ? (currentUser.id || currentUser.correo || currentUser.nombre || 'guest') : 'guest';
       const todayStr = new Date().toISOString().split('T')[0];
       const data = await getDailyTracking(userId, todayStr);
       if (data && data.exercises) {
@@ -152,7 +152,7 @@ const Dashboard = () => {
       
       localStorage.setItem('fittrack-history', JSON.stringify(history));
 
-      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      const userId = currentUser ? (currentUser.id || currentUser.correo || currentUser.nombre || 'guest') : 'guest';
       saveDailyTracking(userId, todayStr, { history: { [todayStr]: historyUpdate } });
     }
   }, [stats, currentUser]);
@@ -170,7 +170,7 @@ const Dashboard = () => {
       localStorage.setItem(cacheKey, JSON.stringify(updated));
 
       // Sincronización con backend
-      const userId = currentUser ? (currentUser.correo || currentUser.id || currentUser.nombre || 'guest') : 'guest';
+      const userId = currentUser ? (currentUser.id || currentUser.correo || currentUser.nombre || 'guest') : 'guest';
       saveDailyTracking(userId, todayStr, { exercises: updated });
       
       if (activeRoutineId) {
