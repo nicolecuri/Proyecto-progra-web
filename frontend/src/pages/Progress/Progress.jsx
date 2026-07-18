@@ -22,7 +22,12 @@ const getStorageKey = () => {
 
 const getProgressStorageKey = () => `${getStorageKey()}:progress`;
 
-const formatDate = (date) => date.toISOString().split('T')[0];
+const formatDate = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
 
 const calculateStreak = (historyArray) => {
   const dateSet = new Set(historyArray.map((w) => w.date));
@@ -413,7 +418,7 @@ const Progress = () => {
             completed: true,
             intensidad: intensidadCalc,
             comentarios: dayComments[dayName]?.comentarios || 'Completado automáticamente',
-            fecha: today.toISOString(),
+            fecha: formatDate(today),
           };
         } else if (dayComments[dayName]?.comentarios === 'Completado automáticamente') {
           // Si se desmarcó un ejercicio y el comment era auto-generado, eliminarlo
@@ -479,7 +484,7 @@ const Progress = () => {
               completed: true,
               intensidad: Number(intensidad),
               comentarios,
-              fecha: today.toISOString(),
+              fecha: formatDate(today),
               tiempo: `${tiempoMin} min`,
             },
           },

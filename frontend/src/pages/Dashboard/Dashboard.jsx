@@ -5,6 +5,13 @@ import { getCurrentUser } from '../../services/userStorage';
 import { getDailyTracking, saveDailyTracking, getRoutineProgress, saveRoutineProgress } from '../../services/trackingApi';
 import { getRoutinesByUser } from '../../services/routineApi';
 
+const formatDate = (date) => {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+};
+
 const getGreeting = () => {
   const h = new Date().getHours();
   if (h >= 5 && h < 12) return '¡Buenos días';
@@ -26,7 +33,7 @@ const Dashboard = () => {
   const [routines, setRoutines] = useState([]);
   const [activeRoutineId, setActiveRoutineId] = useState('');
   const [tracking, setTracking] = useState(() => {
-    const todayStr = new Date().toISOString().split('T')[0];
+    const todayStr = formatDate(new Date());
     const trackingCacheKey = `fitplanner-tracking-${todayStr}`;
     const savedTracking = localStorage.getItem(trackingCacheKey);
     if (savedTracking) {
@@ -48,7 +55,7 @@ const Dashboard = () => {
   useEffect(() => {
     async function loadTracking() {
       const userId = currentUser ? (currentUser.id || currentUser.correo || currentUser.nombre || 'guest') : 'guest';
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = formatDate(new Date());
       const data = await getDailyTracking(userId, todayStr);
       if (data && data.exercises) {
         setTracking(prev => {
@@ -135,7 +142,7 @@ const Dashboard = () => {
   // Guardar historial diario cuando las estadísticas cambien
   useEffect(() => {
     if (stats.time > 0) {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = formatDate(new Date());
       const historyRaw = localStorage.getItem('fittrack-history');
       const history = historyRaw ? JSON.parse(historyRaw) : {};
       
@@ -165,7 +172,7 @@ const Dashboard = () => {
       }
 
       const updated = { ...prev, [id]: updatedValue };
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = formatDate(new Date());
       const cacheKey = `fitplanner-tracking-${todayStr}`;
       localStorage.setItem(cacheKey, JSON.stringify(updated));
 
