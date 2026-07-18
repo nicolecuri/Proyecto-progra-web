@@ -42,15 +42,15 @@ const Calendar = ({ workoutData }) => {
           <span>Más</span>
         </div>
       </div>
-      
+
       <div className="calendar-grid">
+        <div className="day-name">Dom</div>
         <div className="day-name">Lun</div>
         <div className="day-name">Mar</div>
         <div className="day-name">Mié</div>
         <div className="day-name">Jue</div>
         <div className="day-name">Vie</div>
         <div className="day-name">Sáb</div>
-        <div className="day-name">Dom</div>
 
         {blanks.map((_, index) => (
           <div key={`blank-${index}`} className="calendar-day empty"></div>
@@ -61,8 +61,8 @@ const Calendar = ({ workoutData }) => {
           const workout = workoutData.find(w => w.date === dateStr);
           const intensity = getIntensity(day);
           return (
-            <div 
-              key={day} 
+            <div
+              key={day}
               className={`calendar-day intensity-${intensity} ${day === today.getDate() ? 'today' : ''}`}
             >
               <span className="day-number">{day}</span>
