@@ -365,7 +365,10 @@ const Progress = () => {
 
   const updateTodayTrackingIfNeeded = (exerciseId, completed, dayName) => {
     const activeRoutineId = localStorage.getItem(ACTIVE_ROUTINE_KEY);
-    if (rutinaSeleccionada !== activeRoutineId || dayName !== todayName) return;
+    if (rutinaSeleccionada !== activeRoutineId) return;
+
+    // Solo sincronizar con Dashboard si el día coincide con hoy
+    if (dayName !== todayName) return;
 
     try {
       const raw = localStorage.getItem(todayKey);
@@ -396,11 +399,34 @@ const Progress = () => {
       } else {
         completedExercises[exerciseId] = true;
       }
+
+      // Fix 2: Auto-generar dayComment cuando todos los ejercicios del día están completados
+      const dayComments = { ...current.dayComments };
+      const dia = dias.find((d) => d.diaNombre === dayName);
+      if (dia && !dia.isDescanso && Array.isArray(dia.ejercicios) && dia.ejercicios.length > 0) {
+        const allDone = dia.ejercicios.every((ej) => ej?.id && completedExercises[ej.id]);
+        if (allDone) {
+          // Calcular tiempo estimado del día
+          const tiempoMin = dia.ejercicios.reduce((sum, ej) => sum + ((Number(ej?.series) || 0) * (Number(ej?.tiempoPorSerie) || 3)), 0);
+          const intensidadCalc = Math.min(4, Math.ceil(tiempoMin / 20)) || 1;
+          dayComments[dayName] = {
+            completed: true,
+            intensidad: intensidadCalc,
+            comentarios: dayComments[dayName]?.comentarios || 'Completado automáticamente',
+            fecha: today.toISOString(),
+          };
+        } else if (dayComments[dayName]?.comentarios === 'Completado automáticamente') {
+          // Si se desmarcó un ejercicio y el comment era auto-generado, eliminarlo
+          delete dayComments[dayName];
+        }
+      }
+
       const updated = {
         ...prev,
         [rutinaSeleccionada]: {
           ...current,
           completedExercises,
+          dayComments,
         },
       };
       
@@ -428,18 +454,33 @@ const Progress = () => {
 
     setProgressByRoutine((prev) => {
       const current = prev[rutinaSeleccionada] || { completedExercises: {}, dayComments: {} };
-      const completada = isDayCompleted(dia);
+      
+      // Marcar todos los ejercicios del día como completados
+      const completedExercises = { ...current.completedExercises };
+      if (Array.isArray(dia.ejercicios)) {
+        dia.ejercicios.forEach((ej) => {
+          if (ej?.id) completedExercises[ej.id] = true;
+        });
+      }
+
+      // Calcular tiempo estimado real del día
+      const tiempoMin = Array.isArray(dia.ejercicios) 
+        ? dia.ejercicios.reduce((sum, ej) => sum + ((Number(ej?.series) || 0) * (Number(ej?.tiempoPorSerie) || 3)), 0)
+        : 0;
+
       const updated = {
         ...prev,
         [rutinaSeleccionada]: {
           ...current,
+          completedExercises,
           dayComments: {
             ...current.dayComments,
             [dia.diaNombre]: {
-              completed: completada,
+              completed: true,
               intensidad: Number(intensidad),
               comentarios,
               fecha: today.toISOString(),
+              tiempo: `${tiempoMin} min`,
             },
           },
         },
@@ -448,6 +489,21 @@ const Progress = () => {
       const user = getCurrentUser();
       const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
       saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
+
+      // Si el día registrado es hoy, sincronizar también con el Dashboard
+      if (dia.diaNombre === todayName) {
+        try {
+          const raw = localStorage.getItem(todayKey);
+          const parsed = raw ? JSON.parse(raw) : {};
+          dia.ejercicios.forEach((ej) => {
+            if (ej?.id) parsed[ej.id] = 'done';
+          });
+          localStorage.setItem(todayKey, JSON.stringify(parsed));
+          saveDailyTracking(userId, formatDate(today), { exercises: parsed });
+        } catch (err) {
+          console.error('Error sincronizando con Dashboard:', err);
+        }
+      }
 
       return updated;
     });
