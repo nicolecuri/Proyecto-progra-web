@@ -173,7 +173,7 @@ const Progress = () => {
               
               const dia = diasRutina.find((d) => d?.diaNombre === diaNombre);
               const muscles = dia?.ejercicios?.map((ej) => ej?.grupoMuscularPrincipal).filter(Boolean).join(', ') || 'Entrenamiento';
-              const time = comentario.tiempo || (Array.isArray(dia?.ejercicios) && dia.ejercicios.length ? `${dia.ejercicios.reduce((sum, ej) => sum + (Number(ej?.tiempoPorSerie) || 0), 0)} min` : 'N/A');
+              const time = comentario.tiempo || (Array.isArray(dia?.ejercicios) && dia.ejercicios.length ? `${dia.ejercicios.reduce((sum, ej) => sum + ((Number(ej?.series) || 0) * (Number(ej?.tiempoPorSerie) || 3)), 0)} min` : 'N/A');
               
               return {
                 date: fecha,
