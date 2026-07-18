@@ -77,23 +77,9 @@ const Progress = () => {
   const todayKey = `fitplanner-tracking-${formatDate(today)}`;
 
   const [rutinas, setRutinas] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [rutinaSeleccionada, setRutinaSeleccionada] = useState(() => {
-    try {
-      const savedActive = localStorage.getItem(ACTIVE_ROUTINE_KEY);
-      if (savedActive) return savedActive;
-      const persisted = localStorage.getItem(getStorageKey());
-      if (persisted) {
-        const parsed = JSON.parse(persisted);
-        if (Array.isArray(parsed.savedRoutines) && parsed.savedRoutines.length > 0) {
-          return parsed.savedRoutines[0].id;
-        }
-      }
-    } catch (e) {
-      console.error('Error al inicializar la rutina seleccionada:', e);
-    }
-    return null;
-  });
+  const [rutinaSeleccionada, setRutinaSeleccionada] = useState(null);
 
   const [progressByRoutine, setProgressByRoutine] = useState(() => {
     try {
@@ -109,8 +95,12 @@ const Progress = () => {
 
   useEffect(() => {
     async function loadProgressAndRoutines() {
+      setIsLoading(true);
       const user = getCurrentUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       const userId = user.id || user.correo || user.nombre || 'guest';
       
       const [data, historyData, userRoutines] = await Promise.all([
@@ -121,8 +111,14 @@ const Progress = () => {
       
       setRutinas(userRoutines);
 
-      if (!rutinaSeleccionada && userRoutines.length > 0) {
-        setRutinaSeleccionada(userRoutines[0].id);
+      // Always validate the saved routine ID against the fetched list
+      // If it doesn't exist in the list, fall back to the first routine
+      if (userRoutines.length > 0) {
+        const savedId = localStorage.getItem(ACTIVE_ROUTINE_KEY);
+        const isValidSaved = savedId && userRoutines.some(r => r.id === savedId);
+        const selectedId = isValidSaved ? savedId : userRoutines[0].id;
+        setRutinaSeleccionada(selectedId);
+        localStorage.setItem(ACTIVE_ROUTINE_KEY, selectedId);
       }
 
       if (data && Object.keys(data).length > 0) {
@@ -133,6 +129,7 @@ const Progress = () => {
         });
       }
       if (historyData) setHistoryLogs(historyData);
+      setIsLoading(false);
     }
     loadProgressAndRoutines();
   }, []);
@@ -475,7 +472,9 @@ const Progress = () => {
         <section className="progress-header">
           <h1>Tu Progreso</h1>
           <p>
-            {selectedRoutine
+            {isLoading
+              ? 'Cargando tus rutinas...'
+              : selectedRoutine
               ? `Rutina seleccionada: ${selectedRoutine.nombre}. ${dias.length} días en la rutina.`
               : 'No hay rutinas guardadas. Crea una desde el Planificador.'}
           </p>
@@ -604,7 +603,9 @@ const Progress = () => {
           </div>
 
           <div className="workouts-list">
-            {rutinas.length === 0 ? (
+            {isLoading ? (
+              <p className="no-workouts">⏳ Cargando rutinas...</p>
+            ) : rutinas.length === 0 ? (
               <p className="no-workouts">No hay rutinas guardadas. Crea una en el Planificador para ver tu progreso.</p>
             ) : diasFiltrados.length === 0 ? (
               <p className="no-workouts">No hay días que coincidan con el filtro seleccionado.</p>
