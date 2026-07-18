@@ -361,7 +361,12 @@ const Progress = () => {
 
   const isDayCompleted = (day) => {
     try {
-      if (!day || day.isDescanso || !Array.isArray(day?.ejercicios) || day.ejercicios.length === 0) return false;
+      if (!day || day.isDescanso) return false;
+      // Verificar si el día fue registrado manualmente via el modal (dayComment con completed:true)
+      const dayComment = selectedProgress.dayComments?.[day.diaNombre];
+      if (dayComment?.completed === true) return true;
+      // Verificar si todos los ejercicios están marcados manualmente
+      if (!Array.isArray(day?.ejercicios) || day.ejercicios.length === 0) return false;
       return completedExercisesCount(day) === day.ejercicios.length;
     } catch {
       return false;
@@ -455,11 +460,30 @@ const Progress = () => {
     if (!rutinaSeleccionada || diaSeleccionada === null) return;
 
     const dia = dias.find((d) => d.diaNombre === diaSeleccionada);
-    if (!dia) return;
+    if (!dia) {
+      console.warn('[guardarCumplimiento] Día no encontrado:', diaSeleccionada, 'en dias:', dias.map(d => d.diaNombre));
+      return;
+    }
+
+    const user = getCurrentUser();
+    const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
+
+    // Calcular tiempo estimado real del día
+    const tiempoMin = Array.isArray(dia.ejercicios)
+      ? dia.ejercicios.reduce((sum, ej) => sum + ((Number(ej?.series) || 0) * (Number(ej?.tiempoPorSerie) || 3)), 0)
+      : 0;
+
+    const newDayComment = {
+      completed: true,
+      intensidad: Number(intensidad),
+      comentarios,
+      fecha: formatDate(today),
+      tiempo: `${tiempoMin} min`,
+    };
 
     setProgressByRoutine((prev) => {
       const current = prev[rutinaSeleccionada] || { completedExercises: {}, dayComments: {} };
-      
+
       // Marcar todos los ejercicios del día como completados
       const completedExercises = { ...current.completedExercises };
       if (Array.isArray(dia.ejercicios)) {
@@ -468,41 +492,33 @@ const Progress = () => {
         });
       }
 
-      // Calcular tiempo estimado real del día
-      const tiempoMin = Array.isArray(dia.ejercicios) 
-        ? dia.ejercicios.reduce((sum, ej) => sum + ((Number(ej?.series) || 0) * (Number(ej?.tiempoPorSerie) || 3)), 0)
-        : 0;
-
-      const updated = {
-        ...prev,
-        [rutinaSeleccionada]: {
-          ...current,
-          completedExercises,
-          dayComments: {
-            ...current.dayComments,
-            [dia.diaNombre]: {
-              completed: true,
-              intensidad: Number(intensidad),
-              comentarios,
-              fecha: formatDate(today),
-              tiempo: `${tiempoMin} min`,
-            },
-          },
+      const updatedRoutineProgress = {
+        ...current,
+        completedExercises,
+        dayComments: {
+          ...current.dayComments,
+          [dia.diaNombre]: newDayComment,
         },
       };
 
-      const user = getCurrentUser();
-      const userId = user ? (user.id || user.correo || user.nombre || 'guest') : 'guest';
-      saveRoutineProgress(userId, rutinaSeleccionada, updated[rutinaSeleccionada]);
+      const updated = {
+        ...prev,
+        [rutinaSeleccionada]: updatedRoutineProgress,
+      };
+
+      // Persistir en la API (fire-and-forget)
+      saveRoutineProgress(userId, rutinaSeleccionada, updatedRoutineProgress);
 
       // Si el día registrado es hoy, sincronizar también con el Dashboard
       if (dia.diaNombre === todayName) {
         try {
           const raw = localStorage.getItem(todayKey);
           const parsed = raw ? JSON.parse(raw) : {};
-          dia.ejercicios.forEach((ej) => {
-            if (ej?.id) parsed[ej.id] = 'done';
-          });
+          if (Array.isArray(dia.ejercicios)) {
+            dia.ejercicios.forEach((ej) => {
+              if (ej?.id) parsed[ej.id] = 'done';
+            });
+          }
           localStorage.setItem(todayKey, JSON.stringify(parsed));
           saveDailyTracking(userId, formatDate(today), { exercises: parsed });
         } catch (err) {
